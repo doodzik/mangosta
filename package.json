@@ -1,0 +1,42 @@
+{
+  "name": "factory_mongoose",
+  "version": "0.0.0",
+  "description": "Mongoose fixtures library inspired by factory_girl/Monkey",
+  "main": "index.js",
+  "engines": 
+  {
+    "node": ">= 0.8.0"
+  },
+  "keywords":
+  [
+    "mongoose",
+    "mongo",
+    "factory",
+    "test",
+    "testing",
+    "setup",
+    "fixtures",
+    "mocha",
+    "tdd",
+    "bdd"
+  ],
+  "author":
+  {
+    "name": "doodzik",
+    "email": "4004blog@gmail.com"
+  },
+  "repository":
+  {
+    "type": "git",
+    "url": ""
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies":
+  {
+    "mocha": "1.3.2",
+    "should": "0.1.2",
+    "mongoose": "3.5.1"
+  },
+  "readmeFilename": "README.md"
+}
