@@ -7,21 +7,56 @@ schema = new mongoose.Schema({
   "firstName": String,
   "lastName": String,
   "addr": String,
-  "type": {"type": Number, "max": 10}
+  "type": {"type": Number, "max": 10},
+  "date": Date 
 });
 
 model = mongoose.model('schema', schema);
 
 Factory = require('../index.js');
-factory = new Factory(mongoose.model('schema'), function(){
+factory = new Factory(mongoose.model("schema"), function() {
   return {
-      "firstName": "d00d",
-      "lastName": "zik",
-      "addr": "isabela",
-      "type": 0
+    firstName: "d00d",
+    lastName: "zik",
+    addr: "isabela",
+    type: 0,
+    $child: {
+      lola: function() {
+        return {
+          firstName: "lo",
+          lastName: "la",
+          $child: {
+            la: function() {
+              return {
+                firstName: "la"
+              };
+            }
+          }
+        };
+      },
+      empty: function() {
+        return {
+          $child: {
+            notempty: function() {
+              return {
+                firstName: "not",
+                lastName: "empty"
+              };
+            }
+          }
+        };
+      },
+      object_child: {
+        firstName: "object child"
+      },
+      current_date: function() {
+        return {
+          date: new Date()
+        };
+      }
     }
-  }
-);
+  };
+});
 
 describe('Factory', function(){
   afterEach(function(){
@@ -51,7 +86,45 @@ describe('Factory', function(){
 
   describe('single document', function(){
     describe('when build', function(){
-      it('with child factory');
+      describe('with child factory', function(){
+        it('should create 1st child', function(){
+          factory.build({"$factory": "lola"}, function(doc){
+            doc.firstName.should.eql('lo');
+            doc.lastName.should.eql('la');
+          });
+        });
+        it('should create 2st child', function(){
+          factory.build({"$factory": "lola la"}, function(doc){
+            doc.firstName.should.eql('la');
+            doc.lastName.should.eql('la');
+          });
+        });
+        it('should create 2st child with empty first', function(){
+          factory.build({"$factory": "empty notempty"}, function(doc){
+            doc.firstName.should.eql('not');
+            doc.lastName.should.eql('empty');
+          });
+        });
+        it('should create child with obj not function', function(){
+          factory.build({"$factory": "object_child"}, function(doc){
+            doc.firstName.should.eql("object child");
+          });
+        });
+        it('should invoke fx at build', function(){
+          factory.build({"$factory": "current_date"}, function(doc0){
+            setTimeout(function(){
+              factory.build({"$factory": "current_date"}, function(doc1){
+                doc1.date.should.not.be.above(doc0.date)
+              });
+            }, 1000);
+          });
+        });
+        it('should not have proberty of child', function(){
+          factory.build({}, function(doc){
+            doc.should.not.have.property("$child");
+          });
+        });
+      });
       it('without options', function(){
         factory.build({}, function(doc){
           doc.should.have.property('_id');
@@ -96,9 +169,9 @@ describe('Factory', function(){
   });
 
   describe('multi document', function(){
-    it('with child factory');
     describe('when build', function(){
-      it('with child factory');
+      it('with child factory in docs');
+      it('with child factory as default');
       describe('when num', function(){
         it('create default', function(){
           factory.build({num: 4}, function(docs){

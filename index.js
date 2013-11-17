@@ -57,10 +57,13 @@ Factory.prototype._getFactoryObj = function (options){
   factory = this.factory();
   child = factory['$child']
   delete factory["$child"];
-  if(options.factory){
-    factories = options.factory.split(' ');
+  if(options.$factory){
+    factories = options.$factory.split(' ');
     for (_i = 0, _len = factories.length; _i < _len; _i++) {
       child_factory = child[factories[_i]];
+      if(typeof child_factory === 'function'){
+        child_factory = child_factory()
+      }
       child = child_factory['$child'];
       delete child_factory["$child"];
       factory = merge_options(factory, child_factory)
