@@ -73,50 +73,50 @@ describe('Factory', function(){
     describe('when build', function(){
       describe('with child factory', function(){
         it('should create 1st child', function(){
-          factory.build({"$factory": "lola"}, function(doc){
+          factory.build({"$factory": "lola"}, function(err, doc){
             doc.firstName.should.eql('lo');
             doc.lastName.should.eql('la');
           });
         });
         it('should create 2st child', function(){
-          factory.build({"$factory": "lola la"}, function(doc){
+          factory.build({"$factory": "lola la"}, function(err, doc){
             doc.firstName.should.eql('la');
             doc.lastName.should.eql('la');
           });
         });
         it('should create 2st child with empty first', function(){
-          factory.build({"$factory": "empty notempty"}, function(doc){
+          factory.build({"$factory": "empty notempty"}, function(err, doc){
             doc.firstName.should.eql('not');
             doc.lastName.should.eql('empty');
           });
         });
         it('should create child with obj not function', function(){
-          factory.build({"$factory": "object_child"}, function(doc){
+          factory.build({"$factory": "object_child"}, function(err, doc){
             doc.firstName.should.eql("object child");
           });
         });
         it('should invoke fx at build', function(){
-          factory.build({"$factory": "current_date"}, function(doc0){
+          factory.build({"$factory": "current_date"}, function(err, doc0){
             setTimeout(function(){
-              factory.build({"$factory": "current_date"}, function(doc1){
+              factory.build({"$factory": "current_date"}, function(err, doc1){
                 doc1.date.should.not.be.above(doc0.date)
               });
             }, 1000);
           });
         });
         it('should not have proberty of child', function(){
-          factory.build({}, function(doc){
+          factory.build({}, function(err, doc){
             doc.should.not.have.property("$child");
           });
         });
       });
       it('without options', function(){
-        factory.build({}, function(doc){
+        factory.build({}, function(err, doc){
           doc.should.have.property('_id');
         });
       });
       it('with options', function(){
-        factory.build({"$doc":{"type": 9}}, function(doc){
+        factory.build({"$doc":{"type": 9}}, function(err, doc){
           doc.should.have.property('_id')
           doc.type.should.eql(9)
         });
@@ -154,14 +154,14 @@ describe('Factory', function(){
     describe('when build', function(){
       describe('when num', function(){
         it('create default', function(){
-          factory.build({$doc:{$num: 4}}, function(docs){
+          factory.build({$doc:{$num: 4}}, function(err, docs){
             docs.length.should.be.equal(4);
           });
         });
       });
       describe('when num and docs', function(){
         it('create 2 default and 2 custom', function(){
-          factory.build({$docs:[{addr: 'hallo'}, {type: 3}, {$num: 2}]}, function(docs){
+          factory.build({$docs:[{addr: 'hallo'}, {type: 3}, {$num: 2}]}, function(err, docs){
             docs.length.should.be.equal(4);
             docs[0].should.have.property('addr', 'hallo');
             docs[1].should.have.property('type', 3);
@@ -170,7 +170,7 @@ describe('Factory', function(){
       });
       describe('when docs', function(){
         it('create 2 custom', function(){
-          factory.build({$docs:[{addr: 'hallo'}, {type: 3}]}, function(docs){
+          factory.build({$docs:[{addr: 'hallo'}, {type: 3}]}, function(err, docs){
             docs.length.should.be.equal(2);
             docs[0].should.have.property('addr', 'hallo');
             docs[1].should.have.property('type', 3);
@@ -200,5 +200,4 @@ describe('Factory', function(){
       });
     });
   });
-
 });

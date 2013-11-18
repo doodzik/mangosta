@@ -1,7 +1,7 @@
 var Factory, _get, _setRelationsSync;
 strgMethods = require('strgMethods'); 
 
-function merge_options(obj1,obj2){
+function merge_obj(obj1,obj2){
     var obj3 = {};
     for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
     for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
@@ -12,8 +12,7 @@ Factory.prototype.stringMethods = function(doc){
   for (var key in doc) {
     if (doc.hasOwnProperty(key)) {
       Strg = new strgMethods(doc[key], this.sequenc);
-      doc[key] = Strg.len().intv().seq().value;
-      console.log(doc);
+      doc[key] = Strg.all();
     }
   }
   return doc;
@@ -28,7 +27,7 @@ function Factory(model, factory){
 Factory.prototype._getFactory =function (optionFactory){
   var factory, child, _len, _i, child_factory; 
   factory = this.factory();
-  child = factory['$child']
+  child = factory['$child'];
   delete factory["$child"];
   if(optionFactory && optionFactory != "default"){
     factories = optionFactory.split(' ');
@@ -39,7 +38,7 @@ Factory.prototype._getFactory =function (optionFactory){
       }
       child = child_factory['$child'];
       delete child_factory["$child"];
-      factory = merge_options(factory, child_factory)
+      factory = merge_obj(factory, child_factory)
     }
   }
   return factory;
@@ -47,12 +46,11 @@ Factory.prototype._getFactory =function (optionFactory){
 
 Factory.prototype.build = function(options, callback){
   var new_doc;
-  options.factory = this._getFactory(options.$factory)
   new_doc = this._getNewDocs(options);
-  if (new_doc.length == 1 ) {
+  if (new_doc.length === 1 ) {
     new_doc = new_doc[0]
   }
-  return callback(new_doc);
+  return callback(null, new_doc);
 };
 
 Factory.prototype._getNewDocs = function(options) {
@@ -68,7 +66,7 @@ Factory.prototype._getNewDocs = function(options) {
     this.sequenc++;
     $doc = $docsOpt[_i];
     if (typeof $doc["$factory"] === "undefined") {
-      $factory = options.factory; 
+      $factory = this._getFactory(options.$factory)
     } else {
       $factory = this._getFactory($doc["$factory"]);
     }
@@ -89,14 +87,13 @@ Factory.prototype._getNewDocs = function(options) {
 };
 
 Factory.prototype._newDoc = function (factory, doc){
-  return new this.model(this.stringMethods(merge_options(factory, doc)))
+  return new this.model(this.stringMethods(merge_obj(factory, doc)))
 };
-
 
 Factory.prototype.create = function(options, callback) {
   var new_docs, returned, error;
   new_docs = new Array();
-  this.build(options, function(docs) {
+  this.build(options, function(err, docs) {
     var _i, _len;
     if (Object.prototype.toString.call(docs) === "[object Array]") {
       _i = 0;
