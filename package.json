@@ -1,6 +1,6 @@
 {
   "name": "factory_mongoose",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Mongoose fixtures library inspired by factory_girl/Monkey",
   "main": "index.js",
   "engines": 
