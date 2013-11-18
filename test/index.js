@@ -131,7 +131,7 @@ describe('Factory', function(){
         });
       });
       it('with options', function(){
-        factory.build({"docs":[{"type": 9}]}, function(doc){
+        factory.build({"$doc":{"type": 9}}, function(doc){
           doc.should.have.property('_id')
           doc.type.should.eql(9)
         });
@@ -150,10 +150,7 @@ describe('Factory', function(){
       });
 
       it('with options', function(){
-        factory.create({"docs":[{"type": 9}]}, function(err){
-          if (err) {
-            err.should.not.be.an.instanceof(Error);
-          }
+        factory.create({"$doc":{"type": 9}}, function(err){
           model.findOne({}).exec(function(err, doc){
             doc.type.should.eql(9)
           });
@@ -161,7 +158,7 @@ describe('Factory', function(){
       });
 
       it('with invalid data return err', function(){
-        factory.create({"docs":[{"type": "2sre4"}]}, function(err){
+        factory.create({"$docs":[{"type": "2sre4"}]}, function(err){
           err.should.be.an.instanceof(Error);
         });
       });
@@ -170,18 +167,16 @@ describe('Factory', function(){
 
   describe('multi document', function(){
     describe('when build', function(){
-      it('with child factory in docs');
-      it('with child factory as default');
       describe('when num', function(){
         it('create default', function(){
-          factory.build({num: 4}, function(docs){
+          factory.build({$doc:{$num: 4}}, function(docs){
             docs.length.should.be.equal(4);
           });
         });
       });
       describe('when num and docs', function(){
-        it('create 4 default and 2 custom', function(){
-          factory.build({docs:[{addr: 'hallo'}, {type: 3}] ,num: 4}, function(docs){
+        it('create 2 default and 2 custom', function(){
+          factory.build({$docs:[{addr: 'hallo'}, {type: 3}, {$num: 2}]}, function(docs){
             docs.length.should.be.equal(4);
             docs[0].should.have.property('addr', 'hallo');
             docs[1].should.have.property('type', 3);
@@ -189,8 +184,8 @@ describe('Factory', function(){
         });
       });
       describe('when docs', function(){
-        it('create 4 default and 2 custom', function(){
-          factory.build({docs:[{addr: 'hallo'}, {type: 3}]}, function(docs){
+        it('create 2 custom', function(){
+          factory.build({$docs:[{addr: 'hallo'}, {type: 3}]}, function(docs){
             docs.length.should.be.equal(2);
             docs[0].should.have.property('addr', 'hallo');
             docs[1].should.have.property('type', 3);
@@ -201,23 +196,24 @@ describe('Factory', function(){
     describe('when create', function(){
       describe('with valid data', function(){
         it('create mongodb dcuments', function(){
-          factory.create({docs:[{addr: 'hallo'}, {type: 3}]}, function(err, docs){
-            model.find({}).exec(function(err, docs){
-              docs.length.should.be.equal(2);
+          factory.create({$docs:[{addr: 'hallo'}, {type: 3}]}, function(err, docs){
+            model.find({}).exec(function(err, docs1){
+              docs1.length.should.be.equal(2);
             });
           });
         });
       });
       describe('with invalid data', function(){
         it('retrieve err', function(){
-          factory.create({docs:[{addr: 'hallo'}, {type:'fsg4'}]}, function(err, docs){
+          factory.create({$docs:[{addr: 'hallo'}, {type:'fsg4'}]}, function(err, docs){
             err.should.be.instanceof(Error);
-            model.find({}).exec(function(err, docs){
-              docs.length.should.be.equal(0);
+            model.find({}).exec(function(err, docs1){
+              docs1.length.should.be.equal(0);
             });
           });
         });
       });
     });
   });
+
 });

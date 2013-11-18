@@ -52,13 +52,13 @@ function Factory(model, factory){
   this.sequenc = 0
 };
 
-Factory.prototype._getFactoryObj = function (options){
+Factory.prototype._getFactory =function (optionFactory){
   var factory, child, _len, _i, child_factory; 
   factory = this.factory();
   child = factory['$child']
   delete factory["$child"];
-  if(options.$factory){
-    factories = options.$factory.split(' ');
+  if(optionFactory && optionFactory != "default"){
+    factories = optionFactory.split(' ');
     for (_i = 0, _len = factories.length; _i < _len; _i++) {
       child_factory = child[factories[_i]];
       if(typeof child_factory === 'function'){
@@ -70,107 +70,88 @@ Factory.prototype._getFactoryObj = function (options){
     }
   }
   return factory;
-}
-
-Factory.prototype._getNewDoc = function (options){
-  var new_doc;
-  this.sequenc++;
-  if(typeof options.docs === 'undefined'){
-    options.docs = new Array(options.factory);
-  }
-  new_doc = merge_options(options.factory, options.docs[0]);
-  return new this.model(this.stringMethods(new_doc));
 };
 
 Factory.prototype.build = function(options, callback){
   var new_doc;
-  options.factory = this._getFactoryObj(options)
-  if((options.docs && options.docs.length > 1) || (options.num && options.num > 1 )){
-    new_doc = this._buildMultiple(options)
-  } else {
-    new_doc = this._getNewDoc(options);
+  options.factory = this._getFactory(options.$factory)
+  new_doc = this._getNewDocs(options);
+  if (new_doc.length == 1 ) {
+    new_doc = new_doc[0]
   }
   return callback(new_doc);
 };
 
-Factory.prototype._buildMultipleNum = function(options){
-  var new_docs;
-  new_docs = new Array();
-  for (_i = 0, _len = options.num; _i < _len; _i++) {
-    this.sequenc++
-    new_docs.push(new this.model(this.stringMethods(options.factory)));
-  }
-  return new_docs;
-};
-
-Factory.prototype._buildMultipleNumWithDocs = function(options){
-  var new_docs;
-  new_docs = new Array();
-  for (_i = 0, _len = options.num; _i < _len; _i++) {
-    this.sequenc++
-    if(_i <= options.docs.length){
-      new_docs.push(new this.model(this.stringMethods(merge_options(options.factory, options.docs[_i]))));
-    }else{
-      new_docs.push(new this.model(this.stringMethods(options.factory)));
-    }
-  }
-  return new_docs;
-};
-
-Factory.prototype._buildMultipleDocs = function(options){
-  var new_docs; 
-  new_docs = new Array();
-  for (_i = 0, _len = options.docs.length; _i < _len; _i++) {
-    this.sequenc++
-    new_docs.push(new this.model(this.stringMethods(merge_options(options.factory, options.docs[_i]))));
-  }
-  return new_docs;
-};
-
-Factory.prototype._getNewDocs = function (options){
-  if ( options.docs && 'object' === typeof options.docs){
-    if( options.num && 'number' === typeof options.num ){
-      return this._buildMultipleNumWithDocs(options);
+Factory.prototype._getNewDocs = function(options) {
+  var $doc, $docs, $factory, $num, _i, _len;
+  if (options.$doc) {
+    options.$docs = new Array(options.$doc);
+  } 
+  $docs = new Array();
+  $docsOpt = options.$docs || new Array({});
+  _i = 0;
+  _len = $docsOpt.length;
+  while (_i < _len) {
+    this.sequenc++;
+    $doc = $docsOpt[_i];
+    if (typeof $doc["$factory"] === "undefined") {
+      $factory = options.factory; 
     } else {
-      return this._buildMultipleDocs(options);
+      $factory = this._getFactory($doc["$factory"]);
     }
-  }else{
-    return this._buildMultipleNum(options);
+    $num = $doc["$num"] || 0;
+    delete $doc["$factory"];
+    delete $doc["$num"];
+    $docs.push(this._newDoc($factory, $doc));
+    __i = 1;
+    __len = $num;
+    while (__i < __len) {
+      this.sequenc++;
+      $docs.push(this._newDoc($factory, $doc));
+      __i++;
+    }
+    _i++;
   }
+  return $docs;
 };
 
-Factory.prototype._buildMultiple = function(options){
-  var doc_new;
-  doc_new = this._getNewDocs(options);
-  return doc_new;
+Factory.prototype._newDoc = function (factory, doc){
+  return new this.model(this.stringMethods(merge_options(factory, doc)))
 };
+
 
 Factory.prototype.create = function(options, callback) {
-  var new_docs, returned;
+  var new_docs, returned, error;
   new_docs = new Array();
   this.build(options, function(docs) {
-    if(Object.prototype.toString.call( docs ) === '[object Array]'){
-      for (_i = 0, _len = docs.length; _i < _len; _i++) {
+    var _i, _len;
+    if (Object.prototype.toString.call(docs) === "[object Array]") {
+      _i = 0;
+      _len = docs.length;
+      while (_i < _len) {
         docs[_i].save(function(err, doc) {
-          if(err){
-            returned = true;
-            for (_i = 0, _len = new_docs.length; _i < _len; _i++) {
-              new_docs[_i].remove();
+          if (err) {
+            error = err;
+            __i = 0;
+            __len = new_docs.length;
+            while (__i < __len) {
+              new_docs[__i].remove();
+              __i++;
             }
-            return callback(err, null);
+            _i = _len
           }
-          new_docs.push(doc)
+          new_docs.push(doc);
         });
+        _i++;
       }
-      if(returned != true){
-        return callback(null, new_docs);
-      }
-    }else{
+      return callback(error, new_docs);
+    } else {
       docs.save(function(err, doc) {
         return callback(err, doc);
       });
     }
   });
 };
+
 
 module.exports = Factory;
