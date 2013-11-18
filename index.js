@@ -27,6 +27,16 @@ strgSeq = function (value, seq) {
   return value;
 }
 
+strgIntv = function (value, seq) {
+  var isIntv, intv;
+  regExp = /\$intv\(([^)]+)\)/;
+  if ('string' == typeof value && value.match(regExp)) {
+    intv = regExp.exec(value)[1];
+    value = value.replace('$intv('+intv+')', seq*intv);
+  }
+  return value;
+}
+
 strgLen = function (value) {
   var length, regExp;
   regExp = /\$len\(([^)]+)\)/;
@@ -40,7 +50,7 @@ strgLen = function (value) {
 Factory.prototype.stringMethods = function(doc){
   for (var key in doc) {
     if (doc.hasOwnProperty(key)) {
-      doc[key] = strgLen(strgSeq(doc[key], this.sequenc));
+      doc[key] = strgLen(strgIntv(strgSeq(doc[key], this.sequenc), this.sequenc));
     }
   }
   return doc;

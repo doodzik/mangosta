@@ -81,6 +81,14 @@ describe('Factory', function(){
           docs.firstName.should.be.equal("221nanan");
         });
       });
+      it('$intv', function(){
+        docs = factory.stringMethods({"firstName": "$intv(20)"});
+        docs.firstName.should.be.equal("20");
+        factory.build({}, function(){
+          docs = factory.stringMethods({"firstName": "22$intv(20)nanan"});
+          docs.firstName.should.be.equal("2240nanan");
+        });
+      });
     });    
   });
 
