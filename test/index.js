@@ -66,30 +66,7 @@ describe('Factory', function(){
     mongoose.connection.close();
   });
 
-  describe("methods", function(){
-    describe("strgMethods", function(){
-      it('$len', function(){
-        docs = factory.stringMethods({"firstName": "xx$len(32)"});
-        docs.firstName.length.should.be.equal(34);
-      });
-
-      it('$seq', function(){
-        docs = factory.stringMethods({"firstName": "22$seqnanan"});
-        docs.firstName.should.be.equal("220nanan");
-        factory.build({}, function(){
-          docs = factory.stringMethods({"firstName": "22$seqnanan"});
-          docs.firstName.should.be.equal("221nanan");
-        });
-      });
-      it('$intv', function(){
-        docs = factory.stringMethods({"firstName": "$intv(20)"});
-        docs.firstName.should.be.equal("20");
-        factory.build({}, function(){
-          docs = factory.stringMethods({"firstName": "22$intv(20)nanan"});
-          docs.firstName.should.be.equal("2240nanan");
-        });
-      });
-    });    
+  describe("methods", function(){    
   });
 
   describe('single document', function(){

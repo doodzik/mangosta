@@ -1,4 +1,5 @@
 var Factory, _get, _setRelationsSync;
+strgMethods = require('strgMethods'); 
 
 function merge_options(obj1,obj2){
     var obj3 = {};
@@ -7,50 +8,12 @@ function merge_options(obj1,obj2){
     return obj3;
 }
 
-createStrg = function(length) {
-  var chars, i, randomstring, rnum;
-  chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
-  randomstring = "";
-  i = 0;
-  while (i < length) {
-    rnum = Math.floor(Math.random() * chars.length);
-    randomstring += chars.substring(rnum, rnum + 1);
-    i++;
-  }
-  return randomstring;
-};
-
-strgSeq = function (value, seq) {
-  if ('string' == typeof value && value.match(/\$seq/)) {
-    value = value.replace('$seq', seq);
-  }
-  return value;
-}
-
-strgIntv = function (value, seq) {
-  var isIntv, intv;
-  regExp = /\$intv\(([^)]+)\)/;
-  if ('string' == typeof value && value.match(regExp)) {
-    intv = regExp.exec(value)[1];
-    value = value.replace('$intv('+intv+')', seq*intv);
-  }
-  return value;
-}
-
-strgLen = function (value) {
-  var length, regExp;
-  regExp = /\$len\(([^)]+)\)/;
-  if ('string' == typeof value && value.match(regExp)) {
-    length = regExp.exec(value)[1];
-    value = value.replace('$len('+length+')', createStrg(length));
-  }
-  return value;
-}
-
 Factory.prototype.stringMethods = function(doc){
   for (var key in doc) {
     if (doc.hasOwnProperty(key)) {
-      doc[key] = strgLen(strgIntv(strgSeq(doc[key], this.sequenc), this.sequenc));
+      Strg = new strgMethods(doc[key], this.sequenc);
+      doc[key] = Strg.len().intv().seq().value;
+      console.log(doc);
     }
   }
   return doc;
@@ -162,6 +125,5 @@ Factory.prototype.create = function(options, callback) {
     }
   });
 };
-
 
 module.exports = Factory;
