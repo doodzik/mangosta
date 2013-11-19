@@ -3,10 +3,6 @@
   "version": "0.0.1",
   "description": "Mongoose fixtures library inspired by factory_girl/Monkey",
   "main": "index.js",
-  "engines": 
-  {
-    "node": ">= 0.8.0"
-  },
   "keywords":
   [
     "mongoose",
@@ -28,7 +24,7 @@
   "repository":
   {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/doodzik/mongoose-factory.git"
   },
   "license": "MIT",
   "dependencies": {},

@@ -1,3 +1,84 @@
+# Overview
+
+Herpestidae is a factory library for mongoose, which provides a simple but powerful interface.
+
+# Installation
+
+# User Guide
+
+```javascript
+// Factory file
+// __dirname/test/factory/test_factory.js
+
+var factory, Factory, mongoose;
+
+mongoose = require('mongoose');
+Factory = require('herpestidae');
+model = mongoose.model("schema");//get model, which was previously created
+
+factory = new Factory(model, function() {
+  return {
+    key: value,
+    $child: { // child factory -> isnt going to be in the doc
+      // define child factory as an object or a function
+      // define child as function if it is important that the child is build on every build/create operation
+      child_name: function() {
+        return {
+          key: value
+        };
+      },
+      child_name: {
+        key: value
+      }
+    }
+  };
+});
+
+module.exports = factory;
+
+//Test file
+// __dirname/test/index.js
+factory = require("./factories/test_factory.js");
+
+//build and create accept the same parameters
+factory.create(obj, callback)
+factory.build(obj, callback)
+
+callback = function(err, docs) {} // if single document return object else Array Object
+
+obj =
+  {
+    $factory: String,
+    // if factory isnt defined use the default factory 
+    $docs:[ 
+    //or $doc but then without the squared brackets
+    //you can skip every key -> you can parse a empty object
+      {
+        // if the factory isnt defined use the factory of the parent
+        $factory: String,
+        //define how many of these object should be created
+        $num: Int,
+        // you can modify a values of the factory
+        key: value
+      }
+      // add objects here to create multi num document with different factory or/and value for key of main factory
+    ]
+  };;
+
+//string functions
+//include in string of value too
+
+//replace with sequence number of build/create call
+$seq 
+
+//replace with a string of the length of Int 
+$len(Int)
+
+//same as $seq but multiples the sequence with int
+$intv(Int)
+
+```
+
 # License
 
 (The MIT License)
