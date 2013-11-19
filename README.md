@@ -1,6 +1,6 @@
 # Overview
 
-Herpestidae is a factory library for mongoose, which provides a simple but powerful interface.
+Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a simple but powerful interface.
 
 # Installation
 
@@ -13,7 +13,7 @@ Herpestidae is a factory library for mongoose, which provides a simple but power
 var factory, Factory, mongoose;
 
 mongoose = require('mongoose');
-Factory = require('herpestidae');
+Factory = require('mangosta');
 model = mongoose.model("schema");//get model, which was previously created
 
 factory = new Factory(model, function() {
