@@ -61,7 +61,7 @@ Factory.prototype._getFactory =function (optionFactory){
 };
 
 Factory.prototype._newDoc = function (factory, doc){
-  return new this.model(this.stringMethods(merge_obj(factory, doc)))
+  return new this.model(this.stringMethods(merge_obj(factory, doc)));
 };
 
 Factory.prototype.stringMethods = function(doc){

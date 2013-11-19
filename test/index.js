@@ -3,7 +3,7 @@ var factory, Factory, mongoose, schema;
 mongoose = require('mongoose');
 connection = mongoose.connect('mongodb://localhost/mongoos-factory-test')
 
-schema = new mongoose.Schema({
+factory0Schema = new mongoose.Schema({
   "firstName": String,
   "lastName": String,
   "addr": String,
@@ -11,10 +11,23 @@ schema = new mongoose.Schema({
   "date": Date 
 });
 
-model = mongoose.model('schema', schema);
+model = mongoose.model('factory0', factory0Schema);
 
 Factory = require('../index.js');
-factory = new Factory(mongoose.model("schema"), function() {
+
+factory1Schema = new mongoose.Schema({
+  "test": String
+});
+
+model = mongoose.model('factory1', factory1Schema);
+
+factory1 = new Factory(mongoose.model("factory1"), function() {
+  return {
+    test: "factory"
+  };
+});
+
+factory = new Factory(mongoose.model("factory0"), function() {
   return {
     firstName: "d00d",
     lastName: "zik",
@@ -53,7 +66,16 @@ factory = new Factory(mongoose.model("schema"), function() {
         return {
           date: new Date()
         };
-      }
+      },
+      factory_ref: function() {
+        var $docs;
+        factory1.build({}, function(err, doc){
+          $docs = doc;
+        });
+        return {
+          firstName: $docs.test
+        };
+      },
     }
   };
 });
@@ -117,10 +139,16 @@ describe('Factory', function(){
       });
       it('with options', function(){
         factory.build({"$doc":{"type": 9}}, function(err, doc){
-          doc.should.have.property('_id')
-          doc.type.should.eql(9)
+          doc.should.have.property('_id');
+          doc.type.should.eql(9);
         });
       });
+      it('with factory in factory', function(){
+        factory.build({"$factory":"factory_ref"}, function(err, doc){
+          doc.should.have.property('_id');
+          doc.firstName.should.eql("factory");
+        });
+      });      
     });
     describe('when create', function(){
       it('without options', function(){
@@ -129,7 +157,7 @@ describe('Factory', function(){
             err.should.not.be.an.instanceof(Error);
           }
           model.findOne({}).exec(function(err, doc){
-            doc.type.should.eql(0)
+            doc.type.should.eql(0);
           });
         });
       });
@@ -137,7 +165,7 @@ describe('Factory', function(){
       it('with options', function(){
         factory.create({"$doc":{"type": 9}}, function(err){
           model.findOne({}).exec(function(err, doc){
-            doc.type.should.eql(9)
+            doc.type.should.eql(9);
           });
         });
       });

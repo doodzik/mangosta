@@ -10,18 +10,19 @@ Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a
 // Factory file
 // __dirname/test/factory/test_factory.js
 
-var factory, Factory, mongoose;
+var factory, test_factory1, Factory, mongoose;
 
 mongoose = require('mongoose');
 Factory = require('mangosta');
-model = mongoose.model("schema");//get model, which was previously created
+model = mongoose.model("factory");//get model, which was previously created
+test_factory1 = require(__dirname/test/factory/test_factory.js);
 
 factory = new Factory(model, function() {
   return {
     key: value,
     $child: { // child factory -> isnt going to be in the doc
       // define child factory as an object or a function
-      // define child as function if it is important that the child is build on every build/create operation
+      // define child as function if it is important that the child is build on every build/create operation -> for example a nother factory
       child_name: function() {
         return {
           key: value
@@ -29,9 +30,20 @@ factory = new Factory(model, function() {
       },
       child_name: {
         key: value
+        $child: {
+          child_name: function() {//example of another factory in a factory -> call this as an regular child no changes needed
+            var $docs;
+            test_factory1.build({}, function(err, doc){
+              $docs = doc;
+            });
+            return {
+              firstName: $docs.test
+            };
+          }
+        }
       }
     }
-  };
+  }
 });
 
 module.exports = factory;
