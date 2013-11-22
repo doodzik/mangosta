@@ -249,12 +249,9 @@ describe('Factory', function(){
   describe('when create', function(){
     describe('single document', function(){
       it('create mongodb dcuments', function(){
-        factory.create({}, function(err){
-          if (err) {
-            err.should.not.be.an.instanceof(Error);
-          }
-          model.findOne({}).exec(function(err, doc){
-            doc.type.should.eql(0);
+        factory.create({$doc: {$num:10}}, function(){
+          model.find({}).exec(function(err, doc){
+            doc.length.should.eql(10);
           });
         });
       });

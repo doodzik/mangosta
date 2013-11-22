@@ -2,6 +2,8 @@
 
 Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a simple but powerful interface.
 
+PLEASE WRITE PROPOSALS TO THE ISSUES LIST HOW TO MODIFY THIS LIBRARY!
+
 # Installation
 
 # User Guide
@@ -77,17 +79,10 @@ obj =
     ]
   };;
 
-//string functions
-//include in string of value too
-
-//replace with sequence number of build/create call
-$seq 
-
-//replace with a string of the length of Int 
-$len(Int)
-
-//same as $seq but multiples the sequence with int
-$intv(Int)
+// string methods
+// just include them in the value
+// please visit the strgMethods module to see what you can do
+// https://github.com/doodzik/strgMethods
 
 ```
 

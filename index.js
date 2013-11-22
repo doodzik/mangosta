@@ -75,11 +75,16 @@ Factory.prototype.stringMethods = function(doc){
 Factory.prototype.create = function(options, callback) {
   this.build(options, function(err, docs) {
     if (Object.prototype.toString.call(docs) !== "[object Array]") {
-      docs = new Array(docs);
+      docs.save(function(err, doc){
+        return callback(err, doc);
+      });
+    } else {
+      this.model.create(docs, function(err){
+        process.nextTick(function(){
+          return callback(err, docs);
+        });
+      });
     }
-    this.model.create(docs, function(err, docs){
-      return callback(err, docs);
-    });
   });
 };
 
