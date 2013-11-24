@@ -4,7 +4,12 @@ Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a
 
 PLEASE WRITE PROPOSALS TO THE ISSUES LIST HOW TO MODIFY THIS LIBRARY!
 
+THE CREATE METHODE DOESNT WORK CORRECT WITH MULTIPLE DOCS
+if you want to create multiple docs, then build them and then loop through them and save each of them.
+
 # Installation
+
+  $ npm install mangosta
 
 # User Guide
 
@@ -24,7 +29,7 @@ factory = new Factory(model, function() {
     key: value,
     $child: { // child factory -> isnt going to be in the doc
       // define child factory as an object or a function
-      // define child as function if it is important that the child is build on every build/create operation -> for example a nother factory
+      // define child as function if it is important that the child is build on every build/create operation -> for example another factory
       child_name: function() {
         return {
           key: value

@@ -80,6 +80,14 @@ factory = new Factory(mongoose.model("factory0"), function() {
   };
 });
 
+factoryObj = new Factory(function() {
+  return {
+    firstName: "factory",
+    lastName: "hi",
+    type: "lolo"
+  };
+});
+
 describe('Factory', function(){
   afterEach(function(){
     model.find({}).remove();
@@ -97,12 +105,19 @@ describe('Factory', function(){
   });
   
   describe('when _newDoc', function(){
-    it('returns valid', function(){
+    it('returns valid mongoose doc', function(){
       var new_doc;
       new_doc = factory._newDoc({firstName: 'hoohhhoo', lastName: 'hiihhhii'}, {lastName: '$len(66)', type: 3});
       new_doc.lastName.length.should.eql(66);
       new_doc.type.should.eql(3);
       new_doc.constructor.name.should.eql('model');
+    });
+    it('returns valid plain obj', function(){
+      var new_doc;
+      new_doc = factoryObj._newDoc({firstName: 'hoohhhoo', lastName: 'hiihhhii'}, {lastName: '$len(66)', type: 3});
+      new_doc.lastName.length.should.eql(66);
+      new_doc.type.should.eql(3);
+      new_doc.constructor.name.should.not.eql('model');
     });
   });
 

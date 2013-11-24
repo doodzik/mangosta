@@ -10,7 +10,7 @@ function merge_obj(obj1,obj2){
 
 function Factory(model, factory){
   this.model = model;
-  this.factory = factory;
+  this.factory = factory || model;
   this.sequenc = 0
 };
 
@@ -59,7 +59,11 @@ Factory.prototype._getFactory =function (optionFactory){
 };
 
 Factory.prototype._newDoc = function (factory, doc){
+  if(this.model === this.factory){
+    return this.stringMethods(merge_obj(factory, doc));
+  } else {
     return new this.model(this.stringMethods(merge_obj(factory, doc)));
+  }
 };
 
 Factory.prototype.stringMethods = function(doc){
