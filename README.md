@@ -67,6 +67,8 @@ callback = function(err, docs) {} // if single document return object else Array
 
 obj =
   {
+    $seq: Int,
+    // reset seq to given num
     $factory: String,
     // if factory isnt defined use the default factory 
     $docs:[ 

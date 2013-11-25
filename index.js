@@ -15,6 +15,7 @@ function Factory(model, factory){
 };
 
 Factory.prototype.build = function(options, callback){
+  this.sequenc = (typeof options["$seq"] === 'undefined') ? this.sequenc : options["$seq"];
   this._getNewDocs(options, function(err, docs) {
     docs = (docs.length === 1 ) ? docs[0] : docs;
     return callback(err, docs);

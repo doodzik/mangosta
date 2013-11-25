@@ -224,6 +224,15 @@ describe('Factory', function(){
   });
 
   describe('when build', function(){
+    it ("set sequence to given num", function(){
+      factoryObj.build({$seq: 10,$doc: {$num: 20}}, function(err, doc){
+        factoryObj.sequenc.should.eql(30);
+        factoryObj.build({$doc: {$num: 20}}, function(err, doc){
+          factoryObj.sequenc.should.eql(50);
+        });
+      });
+    });
+
     describe('with single document', function(){
       it('without options', function(){
         factory.build({}, function(err, doc){
