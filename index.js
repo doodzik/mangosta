@@ -77,6 +77,7 @@ Factory.prototype.stringMethods = function(doc){
   return doc;
 }
 
+//TODO fix create multiple bug
 Factory.prototype.create = function(options, callback) {
   this.build(options, function(err, docs) {
     if (Object.prototype.toString.call(docs) !== "[object Array]") {
@@ -89,6 +90,41 @@ Factory.prototype.create = function(options, callback) {
           return callback(err, docs);
         });
       });
+    }
+  });
+};
+
+Factory.prototype.find = function(options, callback) {
+  if (typeof callback == "undefined") {
+    callback = options;
+    options = new Object();
+  }
+  this.model.find(options).exec(function(err, docs){
+    callback(err, docs);
+  });
+};
+
+Factory.prototype.findOne = function(options, callback) {
+  if (typeof callback == "undefined") {
+    callback = options;
+    options = new Object();
+  }
+  this.model.findOne(options).exec(function(err, doc){
+    callback(err, doc);
+  });
+};
+
+Factory.prototype.remove = function(options, callback) {
+  if (typeof options == "undefined") {
+    options = new Object();
+  }
+  if (typeof options == "function") {
+    callback = options;
+    options = new Object();
+  }
+  this.model.find(options).remove(function(err, num){
+    if (typeof callback != "undefined") {
+      callback(err, num);
     }
   });
 };
