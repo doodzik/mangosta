@@ -82,7 +82,7 @@ Factory.prototype._getFactory =function (options, callback){
     factories = options.split(' ');
     for (_i = 0, _len = factories.length; _i < _len; _i++) {
       child_factory = child[factories[_i]];
-      if (typeof child_factory === "undefined") { return callback(new Error(factories[_i]+' isnt a child factory'), null) }
+      if (typeof child_factory === "undefined") { return callback(new Error(factories[_i]+' isnt a child factory'), null); }
       child_factory = (typeof child_factory === 'function') ? child_factory() : child_factory;
       child = child_factory.$child;
       delete child_factory.$child;
@@ -111,6 +111,7 @@ Factory.prototype.stringMethods = function (doc){
 };
 
 Factory.prototype.create = function (options, callback) {
+  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   if (typeof options == "function"){
     callback = options;
     options = {};
@@ -129,18 +130,22 @@ Factory.prototype.create = function (options, callback) {
 
 // mongoose methodes as instance of factory
 Factory.prototype.find =  function (args) {
+  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   this.model.find.call(arguments);
 };
 
 Factory.prototype.count =  function (args) {
+  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   this.model.count.call(arguments);
 };
 
 Factory.prototype.findOne = function (args) {
+  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   this.model.findOne.call(arguments);
 };
 
 Factory.prototype.remove = function (options, callback) {
+  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   if (typeof options == "undefined") {
     options = {};
   }
