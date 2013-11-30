@@ -1,0 +1,404 @@
+{
+    "project": {},
+    "files": {
+        "index.js": {
+            "name": "index.js",
+            "modules": {},
+            "classes": {
+                "Factory": 1
+            },
+            "fors": {},
+            "namespaces": {}
+        }
+    },
+    "modules": {},
+    "classes": {
+        "Factory": {
+            "name": "Factory",
+            "shortname": "Factory",
+            "classitems": [],
+            "plugins": [],
+            "extensions": [],
+            "plugin_for": [],
+            "extension_for": [],
+            "file": "index.js",
+            "line": 4,
+            "example": [
+                "\n  new Factory(mongoose.model('name'), function() { return obj; });"
+            ],
+            "is_constructor": 1,
+            "params": [
+                {
+                    "name": "model",
+                    "description": "The mongoose.model('name') or nothing if you want a plain factory Object",
+                    "type": "Object",
+                    "optional": true
+                },
+                {
+                    "name": "factory",
+                    "description": "The factory Object",
+                    "type": "Function",
+                    "props": [
+                        {
+                            "name": "object",
+                            "description": "The return Object of function, if you want you can include another factory in the obj/child. please look at the test/index.js ile in the repo how it is included",
+                            "type": "Object",
+                            "props": [
+                                {
+                                    "name": "key",
+                                    "description": "value",
+                                    "type": "String|Number|Array",
+                                    "optional": true
+                                },
+                                {
+                                    "name": "$child",
+                                    "description": "you can nest children in other children as you wish. you can use empty children, too",
+                                    "type": "Object",
+                                    "optional": true
+                                },
+                                {
+                                    "name": "$child.child_name",
+                                    "description": "",
+                                    "type": "Object|Function",
+                                    "optional": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "itemtype": "property",
+            "type": "Number",
+            "default": "0"
+        }
+    },
+    "classitems": [
+        {
+            "file": "index.js",
+            "line": 30,
+            "description": "builds a mongoose Object or a plain Object",
+            "itemtype": "method",
+            "name": "build",
+            "async": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "{Object} options field, if nothing specified then return one default doc",
+                    "optional": true,
+                    "props": [
+                        {
+                            "name": "$factory",
+                            "description": "write the child factories down seperated by space which you want to build. $child{first: {$child: second{}}} would be options.$factory = \"first second\"",
+                            "type": "String",
+                            "optional": true,
+                            "optdefault": "\"default\""
+                        },
+                        {
+                            "name": "$seq",
+                            "description": "when provided resets sequence with given num",
+                            "type": "Number",
+                            "optional": true,
+                            "optdefault": "this.sequenc"
+                        },
+                        {
+                            "name": "$doc",
+                            "description": "{Object} Set the value of the doc to create",
+                            "optional": true,
+                            "props": [
+                                {
+                                    "name": "$factory",
+                                    "description": "same as options.$factory",
+                                    "type": "String",
+                                    "optional": true,
+                                    "optdefault": "options.$factory"
+                                },
+                                {
+                                    "name": "$num",
+                                    "description": "set number of docs which should be created",
+                                    "type": "Number",
+                                    "optional": true,
+                                    "optdefault": "1"
+                                },
+                                {
+                                    "name": "key",
+                                    "description": "value which should be merged with parent factory and this factory",
+                                    "type": "String|Number|Array",
+                                    "optional": true
+                                }
+                            ]
+                        },
+                        {
+                            "name": "$docs",
+                            "description": "{Array} if you want to build multiple different docs, basically the same as options.$doc in an Array -> [ options.$doc, options.$doc ]",
+                            "optional": true,
+                            "optdefault": "["
+                        }
+                    ]
+                },
+                {
+                    "name": "callback",
+                    "description": "callback",
+                    "type": "Function"
+                }
+            ],
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 59,
+            "description": "checks if new mongoose.model(object) got a wrong field value",
+            "itemtype": "method",
+            "name": "_compareObjSync",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "mObj",
+                    "description": "mongoose Object",
+                    "type": "Object"
+                },
+                {
+                    "name": "obj",
+                    "description": "plain Object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "if no error then false else new Error",
+                "type": "Object"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 82,
+            "description": "merges obj2 into obj1",
+            "itemtype": "method",
+            "name": "_mergeObjsSync",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "obj1",
+                    "description": "Object",
+                    "type": "Object"
+                },
+                {
+                    "name": "obj2",
+                    "description": "Object",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "merged object",
+                "type": "Object"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 104,
+            "description": "handles the options field from build",
+            "itemtype": "method",
+            "name": "_getNewDocs",
+            "access": "private",
+            "tagname": "",
+            "async": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "options field",
+                    "type": "Object"
+                },
+                {
+                    "name": "callback",
+                    "description": "callback",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "callback(err, docs)",
+                "type": "Function"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 139,
+            "description": "get factory object",
+            "itemtype": "method",
+            "name": "_getFactory",
+            "access": "private",
+            "tagname": "",
+            "async": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "options field",
+                    "type": "Object"
+                },
+                {
+                    "name": "callback",
+                    "description": "callback",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "callback(err, factoryObject)",
+                "type": "Function"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 173,
+            "description": "set new doc",
+            "itemtype": "method",
+            "name": "_newDoc",
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "options",
+                    "description": "{Object} options field",
+                    "optional": true
+                },
+                {
+                    "name": "callback",
+                    "description": "callback",
+                    "type": "Function"
+                }
+            ],
+            "return": {
+                "description": "mongoose factory ? mongoose Object : plain Object",
+                "type": "Object"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 191,
+            "description": "applies strMethods.all() to each value of object",
+            "itemtype": "method",
+            "name": "stringMethods",
+            "uses": [
+                "strgMethods"
+            ],
+            "access": "private",
+            "tagname": "",
+            "params": [
+                {
+                    "name": "doc",
+                    "description": "takes a document",
+                    "type": "Object"
+                }
+            ],
+            "return": {
+                "description": "object with applied strgMethods",
+                "type": "Object"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 211,
+            "description": "accepts options as factory.build",
+            "example": [
+                "\n  //with mocha you can pass done() as a callback\n  factory.create({$doc: {$num: 3}}, done());\n  factory.create(function(err, docs){\n    //insert here whatever you want\n  });"
+            ],
+            "itemtype": "method",
+            "name": "create",
+            "async": 1,
+            "params": [
+                {
+                    "name": "options",
+                    "description": "{Object} options field",
+                    "optional": true
+                },
+                {
+                    "name": "callback",
+                    "description": "callback",
+                    "type": "Function",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "with (err, docs)",
+                "type": "Function"
+            },
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 246,
+            "description": "instead of factory.model.find\nsee http://mongoosejs.com/docs/api.html#model_Model.find",
+            "itemtype": "method",
+            "name": "find",
+            "uses": [
+                "mongoose.model.find"
+            ],
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 259,
+            "description": "instead of factory.model.count\nsee http://mongoosejs.com/docs/api.html#model_Model.count",
+            "itemtype": "method",
+            "name": "count",
+            "uses": [
+                "mongoose.model.count"
+            ],
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 272,
+            "description": "instead of factory.model.findOne\nsee http://mongoosejs.com/docs/api.html#model_Model.findOne",
+            "itemtype": "method",
+            "name": "findOne",
+            "uses": [
+                "mongoose.model.findOne"
+            ],
+            "class": "Factory"
+        },
+        {
+            "file": "index.js",
+            "line": 285,
+            "description": "removes docs which matches options from factory.model",
+            "itemtype": "method",
+            "name": "remove",
+            "async": 1,
+            "uses": [
+                "mongoose.model.remove"
+            ],
+            "params": [
+                {
+                    "name": "options",
+                    "description": "options field as in mongoose.model.remove",
+                    "optional": true
+                },
+                {
+                    "name": "callback",
+                    "description": "callback",
+                    "type": "Function",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "description": "returns the same callback as http://mongoosejs.com/docs/api.html#model_Model.remove",
+                "type": "Function"
+            },
+            "class": "Factory"
+        }
+    ],
+    "warnings": [
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " index.js:104"
+        },
+        {
+            "message": "replacing incorrect tag: returns with return",
+            "line": " index.js:139"
+        }
+    ]
+}
