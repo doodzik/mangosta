@@ -1,5 +1,6 @@
 #ignore path
 node_modules/
+out/
 
 #ignore file names
 .DS_Store

@@ -80,14 +80,32 @@ factory = new Factory(mongoose.model("factory0"), function() {
   };
 });
 
+factoryObj = new Factory(function() {
+  return {
+    firstName: "factory",
+    lastName: "hi",
+    type: "lolo"
+  };
+});
+
 describe('Factory', function(){
-  afterEach(function(){
-    model.find({}).remove();
-    model1.find({}).remove();
+  afterEach(function(done){
+    model.remove(function(){
+      model1.remove(function(){
+        done();
+      });
+    });
   });
 
-  after(function(){
-    mongoose.connection.close();
+  describe('when done() as callback', function(){
+    before(function(done) {
+      factory.create({$doc:{$num:6}}, done());
+    });
+    it("returns counts",function(){
+      factory.count({}, function(err, num){
+        num.should.eql(6);
+      });
+    });
   });
 
   describe('when stringMethods', function(){
@@ -97,72 +115,133 @@ describe('Factory', function(){
   });
   
   describe('when _newDoc', function(){
-    it('returns valid', function(){
+    it('returns valid mongoose doc', function(){
       var new_doc;
       new_doc = factory._newDoc({firstName: 'hoohhhoo', lastName: 'hiihhhii'}, {lastName: '$len(66)', type: 3});
       new_doc.lastName.length.should.eql(66);
       new_doc.type.should.eql(3);
       new_doc.constructor.name.should.eql('model');
     });
+    it('returns valid plain obj', function(){
+      var new_doc;
+      new_doc = factoryObj._newDoc({firstName: 'hoohhhoo', lastName: 'hiihhhii'}, {lastName: '$len(66)', type: 3});
+      new_doc.lastName.length.should.eql(66);
+      new_doc.type.should.eql(3);
+      new_doc.constructor.name.should.not.eql('model');
+    });
   });
 
   describe('when _getFactory', function(){
     it('return default factory', function(){
-      var fctry, test_obj;
+      var test_obj;
       test_obj = {firstName: "d00d", lastName: "zik", addr: "isabela", type: 0};
-      fctry = factory._getFactory('default');
-      fctry.should.eql(test_obj);
-      fctry = factory._getFactory();
-      fctry.should.eql(test_obj);
+      factory._getFactory('default', function(err, fctry){
+        fctry.should.eql(test_obj);
+      });
+      factory._getFactory(function(err, fctry){
+        fctry.should.eql(test_obj);
+      });
     });
 
     it('return 1st child', function(){
-      var fctry, test_obj;
-      fctry = factory._getFactory("lola");
+      var test_obj;
       test_obj = {firstName: "lo", lastName: "la", addr: "isabela", type: 0};
-      fctry.should.eql(test_obj);
+      factory._getFactory("lola", function(err, fctry){
+        fctry.should.eql(test_obj);
+      });
     });
 
     it('return 2st child', function(){
-      var fctry, test_obj;
-      fctry = factory._getFactory("lola la");
+      var test_obj;
       test_obj = {firstName: "la", lastName: "la", addr: "isabela", type: 0};
-      fctry.should.eql(test_obj);
+      factory._getFactory("lola la", function(err, fctry){
+        fctry.should.eql(test_obj);
+      });
     });
 
     it('return 2st child with empty first', function(){
-      var fctry, test_obj;
-      fctry = factory._getFactory("empty notempty");
+      var test_obj;
       test_obj = {firstName: "not", lastName: "empty", addr: "isabela", type: 0};
-      fctry.should.eql(test_obj);
+      factory._getFactory("empty notempty", function(err, fctry){
+        fctry.should.eql(test_obj);
+      });
     });
 
     it('return child with obj not function', function(){
-      var fctry, test_obj;
-      fctry = factory._getFactory("object_child");
+      var test_obj;
       test_obj = {firstName: "object child", lastName: "zik", addr: "isabela", type: 0};
-      fctry.should.eql(test_obj);
+      factory._getFactory("object_child", function(err, fctry){
+        fctry.should.eql(test_obj);
+      });
     });
 
     it('invoke fx at build', function(){
-      var fctry, fctry1, test_obj;
-      fctry = factory._getFactory("current_date");
-      setTimeout(function(){
-        fctry1 = factory._getFactory("current_date");
-        fctry1.date.should.not.be.above(fctry.date);
-      }, 1000);
+      var test_obj;
+      factory._getFactory("current_date", function(err, fctry){
+        setTimeout(function(){
+          factory._getFactory("current_date", function(err, fctry1){
+            fctry1.date.should.not.be.above(fctry.date);
+          });
+        }, 1000);
+      });
     });
 
     it('doesnt have proberty of child', function(){
-      var fctry;
-      fctry = factory._getFactory();
-      fctry.should.not.have.property("$child");
+      factory._getFactory(function(err, fctry){
+        fctry.should.not.have.property("$child");
+      });
     });
 
     it('return factory in factory', function(){
-      var fctry, test_obj;
-      fctry = factory._getFactory("factory_ref");
-      fctry.firstName.should.eql("factory");
+      var test_obj;
+      factory._getFactory("factory_ref", function(err, fctry){
+        fctry.firstName.should.eql("factory");
+      });
+    });
+
+    describe("with invalid", function(){
+      it("returns err", function() {
+        factory._getFactory("notExists", function(err){
+          err.message.should.eql("notExists isnt a child factory");
+        });
+      });
+    });
+  });
+
+  describe("_mergeObjsSync", function(){
+    it("returns merged obj", function(){
+      var newObj;
+      newObj = factory._mergeObjsSync({one:"one", two: "two"}, {one: "three", three: "one"});
+      newObj.one.should.eql("three");
+      newObj.two.should.eql("two");
+      newObj.three.should.eql("one");
+    });
+  });
+
+  describe('when _compareObjSync', function(){
+    describe('when Obj factory', function(){
+      it("returns false",function(){
+        factoryObj._compareObjSync({hola: "fas", type:"avr"}, {}).should.be.false;
+      });
+    });
+    describe('when factory', function(){
+      describe('when mObj keys different then obj keys', function(){
+        it("returns Error",function(){
+          var mObj, err;
+          mObj = new factory.model({ firstName: "d00d", lastName: "111", addr: "isabela", type: 'lbhjlh'});
+          err = factory._compareObjSync(mObj, {firstName: "d00d", lastName: "111", addr: "isabela", type: 0})
+          err.should.be.instanceof(Error);
+          err.message.should.eql('type isnt the right Schema var type');
+        });
+      });
+      describe('when mObj keys different then obj keys', function(){
+        it("returns false",function(){
+          var mObj, err;
+          mObj = new factory.model({    firstName: "d00d", lastName: "111", addr: "isabela", type: 0});
+          err = factory._compareObjSync(mObj, {firstName: "d00d", lastName: "111", addr: "isabela", type: 0})
+          err.should.be.false;
+        });
+      });
     });
   });
 
@@ -208,7 +287,137 @@ describe('Factory', function(){
     });
   });
 
+  describe('when find', function(){
+    beforeEach(function(done){
+      factory.model.find({}).remove(function(){
+        factory.create({$docs:[{$num:5},{lastName: "zuk", $num: 3}]}, function(){
+          done();
+        });
+      });
+    });
+    describe('without options', function(){
+      it('returns 8 docs', function(){
+        factory.find(function(err, docs){
+          docs.length.should.eql(8);
+        });
+      });
+    });
+    describe('with options', function(){
+      it('returns 3 docs', function(){
+        factory.find({lastName: "zuk"}, function(err, docs){
+          docs.length.should.eql(3);
+        });
+      });
+    });
+  });
+
+  describe('when findOne', function(){
+    before(function(done){
+      factory.create({$docs:[{},{lastName: "zuk"}]}, function(){
+        done();
+      });
+    });
+    describe('without options', function(){
+      it('returns one doc', function(){
+        factory.findOne(function(err, doc){
+          doc.length.should.eql(1);
+        });
+      });
+    });
+    describe('with options', function(){
+      it('returns specific doc', function(){
+        factory.findOne({lastName: "zuk"}, function(err, doc){
+          doc.lastName.should.eql("zuk");
+        });
+      });
+    });
+  });
+  
+  describe('when count', function(){
+    before(function(done) {
+      factory.create({$doc:{$num:6}}, function(){
+        done();
+      });
+    });
+    it("returns counts",function(){
+      factory.count({}, function(err, num){
+        num.should.eql(6);
+      });
+    });
+  });
+
+  describe('when remove', function(){
+    beforeEach(function(done){
+      factory.model.find({}).remove(function(){
+        factory.create({$docs:[{$num:5},{lastName: "zuk", $num: 3}]}, function(){
+          done();
+        });
+      });
+    });
+
+    describe('without options', function(){
+      describe('without callback', function(){
+        it('removes all', function(done){
+          factory.remove();
+          process.nextTick(function(){
+            factory.model.find({}).count(function(err, num){
+              num.should.eql(0);
+              done();
+            });
+          });
+        });
+      });
+
+      describe('with callback', function(){
+        it('removes all and return num of retured', function(){
+          factory.remove(function(err, num){
+            num.should.eql(8);
+          });
+        });
+      });
+    });
+
+    describe('with options', function(){
+      describe('without callback', function(){
+        it('removes 3', function(){
+          factory.remove({lastName: "zuk"});
+          process.nextTick(function(){
+            factory.model.find({}).count(function(err, num){
+              num.should.eql(5);
+            });
+          });
+        });
+      });
+
+      describe('with callback', function(){
+        it('removes 3 and return num of retured', function(done){
+          factory.remove({lastName: "zuk"}, function(err, num){
+            num.should.eql(3);
+            done();
+          });
+        });
+      });
+    });
+  });
+
   describe('when build', function(){
+    describe("with invalid", function(){
+      it("var type return err", function(){
+        factory.build({$doc:{type: "f234fq3"}}, function(err){
+          err.message.should.eql("type isnt the right Schema var type");
+        });
+      });
+    });
+
+    it ("set sequence to given num", function(){
+      factoryObj.build({$seq: 10, $doc: {$num: 20}}, function(err, doc){
+        factoryObj.sequenc.should.eql(30);
+        factoryObj.build({$doc: {$num: 20}}, function(err, doc){
+          factoryObj.sequenc.should.eql(50);
+        });
+      });
+    });
+
     describe('with single document', function(){
       it('without options', function(){
         factory.build({}, function(err, doc){
@@ -244,42 +453,84 @@ describe('Factory', function(){
         });
       });
     });
+    describe("without args", function(){
+      describe("without options", function(){
+        it("returns default obj", function(){
+          factory.build({}, function(err, doc1){
+            factory.build(function(err, doc2){
+              doc1["_id"] = doc2["_id"];
+              doc1.toJSON().should.eql(doc2.toJSON());
+            });
+          });
+        });
+      });
+    });
   });
 
   describe('when create', function(){
     describe('single document', function(){
-      it('create mongodb dcuments', function(){
+      it('create mongodb dcuments', function(done){
         factory.create({$doc: {$num:10}}, function(){
           model.find({}).exec(function(err, doc){
             doc.length.should.eql(10);
+            done();
           });
         });
       });
 
       it('with invalid data return err', function(){
-        factory.create({"$docs":[{"type": "2sre4"}]}, function(err, docs){
+        factory.create({"$docs":[{"type": 1000}]}, function(err, docs){
           err.should.be.an.instanceof(Error);
         });
       }); 
     });
     describe('multi document', function(){
       describe('with valid data', function(){
-        it('create mongodb dcuments', function(){
+        it('create mongodb dcuments', function(done){
           factory.create({$docs:[{addr: 'hallo'}, {type: 3}]}, function(err, docs){
             model.find({}).exec(function(err, docs1){
               docs1.length.should.be.equal(2);
+              done();
             });
           });
         });
       });
       describe('with invalid data', function(){
-        it('retrieve err', function(){
-          factory.create({$docs:[{addr: 'hallo'}, {type:'fsg4'}]}, function(err, docs){
+        it('retrieve err', function(done){
+          factory.create({$docs:[{addr: 'hallo', $num: 3}, {type:1000}]}, function(err, docs){
             err.should.be.instanceof(Error);
             model.find({}).exec(function(err, docs1){
-              docs1.length.should.be.equal(0);
+              docs1.length.should.be.equal(3);
+              done();
             });
           });
+        });
+      });
+    });
+
+    describe("without args", function(){
+      describe("without options", function(){
+        it("returns default obj", function(){
+          factory.create({}, function(err, doc1){
+            factory.create(function(err, doc2){
+              doc1["_id"] = doc2["_id"];
+              doc1.toJSON().should.eql(doc2.toJSON());
+            });
+          });
+        });
+      });
+      describe("without callback", function(){
+        it("saves default obj to db", function(){
+          factory.create({});
+          factory.count({}, function(err, num){
+            num.should.eql(0);
+          });
+        });
+      });
+      describe("without options, callback", function(){
+        factory.create();
+        factory.count({}, function(err, num){
+          num.should.eql(0);
         });
       });
     });

@@ -1,6 +1,6 @@
 {
   "name": "mangosta",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Mongoose fixtures library inspired by factory_girl",
   "main": "index.js",
   "keywords":
@@ -34,7 +34,7 @@
   {
     "mocha": "1.3.2",
     "should": "0.1.2",
-    "mongoose": "3.5.1"
+    "mongoose": "3.8.1"
   },
   "readmeFilename": "README.md"
 }
