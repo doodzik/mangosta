@@ -1,6 +1,6 @@
 {
   "name": "mangosta",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Mongoose fixtures library inspired by factory_girl",
   "main": "index.js",
   "keywords":

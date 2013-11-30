@@ -1,12 +1,48 @@
 var Factory, strgMethods;
 strgMethods = require('strgMethods');
 
+/**
+@class Factory
+@example
+  new Factory(mongoose.model('name'), function() { return obj; });
+@constructor
+@param [model] {Object} The mongoose.model('name') or nothing if you want a plain factory Object
+@param factory {Function} The factory Object
+  @param factory.object {Object} The return Object of function, if you want you can include another factory in the obj/child. please look at the test/index.js ile in the repo how it is included
+    @param [factory.object.key] {String|Number|Array} value 
+    @param [factory.object.$child] {Object} you can nest children in other children as you wish. you can use empty children, too
+    @param [factory.object.$child.child_name] {Object|Function}
+@property model
+@type Function|Object
+@default factory
+@property factory
+@type Function
+@property sequence
+@type Number
+@default 0
+*/
 function Factory(model, factory){
   this.model = model;
   this.factory = factory || model;
   this.sequenc = 0;
 }
 
+/**
+
+builds a mongoose Object or a plain Object
+
+@method build
+@async
+@param [options={}] {Object} options field, if nothing specified then return one default doc
+  @param [options.$factory="default"] {String} write the child factories down seperated by space which you want to build. $child{first: {$child: second{}}} would be options.$factory = "first second"
+  @param [options.$seq=this.sequenc] {Number} when provided resets sequence with given num
+  @param [options.$doc={}] {Object} Set the value of the doc to create
+    @param [options.$doc.$factory=options.$factory] {String} same as options.$factory
+    @param [options.$doc.$num=1] {Number} set number of docs which should be created
+    @param [options.$doc.key] {String|Number|Array} value which should be merged with parent factory and this factory
+  @param [options.$docs=[{}]] {Array} if you want to build multiple different docs, basically the same as options.$doc in an Array -> [ options.$doc, options.$doc ]
+@param callback {Function} callback
+*/
 Factory.prototype.build = function (options, callback){
   if (typeof options == "function"){
     callback = options;
@@ -20,11 +56,21 @@ Factory.prototype.build = function (options, callback){
   });
 };
 
+/**
+
+checks if new mongoose.model(object) got a wrong field value
+
+@method _compareObjSync
+@private
+@param mObj {Object} mongoose Object
+@param obj {Object} plain Object
+@return {Object} if no error then false else new Error
+*/
 Factory.prototype._compareObjSync = function (mObj, obj) {
   if(this.model === this.factory){ return false; }
   obj._id = "";
-  mObj = Object.keys(mObj.toObject());
-  obj = Object.keys(obj);
+  mObj = Object.keys(mObj.toObject()).sort();
+  obj = Object.keys(obj).sort();
   for (var i = 0; i < mObj.length; i++) {
     if (mObj[i] != obj[i]) {
       return new Error(obj[i]+' isnt the right Schema var type');
@@ -33,6 +79,16 @@ Factory.prototype._compareObjSync = function (mObj, obj) {
   return false;
 };
 
+/**
+
+merges obj2 into obj1
+
+@method _mergeObjsSync
+@private
+@param obj1 {Object} Object
+@param obj2 {Object} Object
+@return {Object} merged object
+*/
 Factory.prototype._mergeObjsSync = function (obj1, obj2) {
   var attrname, obj3;
   obj3 = {};
@@ -45,6 +101,17 @@ Factory.prototype._mergeObjsSync = function (obj1, obj2) {
   return obj3;
 };
 
+/**
+
+handles the options field from build
+
+@method _getNewDocs
+@private
+@async
+@param options {Object} options field
+@param callback {Function} callback
+@returns {Function} callback(err, docs) 
+*/
 Factory.prototype._getNewDocs = function (options, callback) {
   var $doc, docs, $docsOpt, factory, $num, _i, _len;
   docs = [];
@@ -69,7 +136,18 @@ Factory.prototype._getNewDocs = function (options, callback) {
   return callback(err, docs);
 }; 
 
-Factory.prototype._getFactory =function (options, callback){
+/**
+
+get factory object
+
+@method _getFactory
+@private
+@async
+@param options {Object} options field
+@param callback {Function} callback
+@returns {Function} callback(err, factoryObject) 
+*/
+Factory.prototype._getFactory = function (options, callback){
   var factory, err, child, _len, _i, child_factory;
   if (typeof options == "function"){
     callback = options;
@@ -92,6 +170,16 @@ Factory.prototype._getFactory =function (options, callback){
   return callback(err, factory);
 };
 
+/**
+
+set new doc
+
+@method _newDoc
+@private
+@param [options={}] {Object} options field
+@param callback {Function} callback
+@return {Object} mongoose factory ? mongoose Object : plain Object 
+*/
 Factory.prototype._newDoc = function (factory, doc){
   if(this.model === this.factory){
     return this.stringMethods(this._mergeObjsSync(factory, doc));
@@ -100,6 +188,16 @@ Factory.prototype._newDoc = function (factory, doc){
   }
 };
 
+/**
+
+applies strMethods.all() to each value of object
+
+@method stringMethods
+@uses strgMethods
+@private
+@param doc {Object} takes a document
+@return {Object} object with applied strgMethods
+*/
 Factory.prototype.stringMethods = function (doc){
   for (var key in doc) {
     if (doc.hasOwnProperty(key)) {
@@ -110,6 +208,23 @@ Factory.prototype.stringMethods = function (doc){
   return doc;
 };
 
+/** 
+
+accepts options as factory.build
+
+@example
+  //with mocha you can pass done() as a callback
+  factory.create({$doc: {$num: 3}}, done());
+  factory.create(function(err, docs){
+    //insert here whatever you want
+  });
+
+@method create
+@async
+@param [options={}] {Object} options field
+@param [callback] {Function} callback
+@return {Function} with (err, docs)
+*/
 Factory.prototype.create = function (options, callback) {
   if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   if (typeof options == "function"){
@@ -128,22 +243,56 @@ Factory.prototype.create = function (options, callback) {
   });
 };
 
-// mongoose methodes as instance of factory
+/**
+
+instead of factory.model.find
+see http://mongoosejs.com/docs/api.html#model_Model.find
+
+@method find
+@uses mongoose.model.find
+*/
 Factory.prototype.find =  function (args) {
   if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   this.model.find.call(arguments);
 };
 
+/**
+
+instead of factory.model.count
+see http://mongoosejs.com/docs/api.html#model_Model.count
+
+@method count
+@uses mongoose.model.count
+*/
 Factory.prototype.count =  function (args) {
   if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   this.model.count.call(arguments);
 };
 
+/** 
+
+instead of factory.model.findOne
+see http://mongoosejs.com/docs/api.html#model_Model.findOne
+
+@method findOne
+@uses mongoose.model.findOne
+*/
 Factory.prototype.findOne = function (args) {
   if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   this.model.findOne.call(arguments);
 };
 
+/**
+
+removes docs which matches options from factory.model
+
+@method remove
+@async
+@uses mongoose.model.remove
+@param [options={}] options field as in mongoose.model.remove
+@param [callback] {Function} callback
+@return {Function} returns the same callback as http://mongoosejs.com/docs/api.html#model_Model.remove
+*/
 Factory.prototype.remove = function (options, callback) {
   if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   if (typeof options == "undefined") {

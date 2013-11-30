@@ -2,21 +2,18 @@
 
 Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a simple but powerful interface.
 
-PLEASE WRITE PROPOSALS TO THE ISSUES LIST HOW TO MODIFY THIS LIBRARY!
-
-THE CREATE METHODE DOESNT WORK CORRECT WITH MULTIPLE DOCS
-if you want to create multiple docs, then build them and then loop through them and save each of them.
-
 # Installation
 
   $ npm install mangosta
 
 # User Guide
 
-```javascript
-// Factory file
-// __dirname/test/factory/test_factory.js
+find the API under: 
 
+###Factory file
+__dirname/test/factory/test_factory.js
+
+```javascript
 var factory, test_factory1, Factory, mongoose;
 
 mongoose = require('mongoose');
@@ -29,7 +26,8 @@ factory = new Factory(model, function() {
     key: value,
     $child: { // child factory -> isnt going to be in the doc
       // define child factory as an object or a function
-      // define child as function if it is important that the child is build on every build/create operation -> for example another factory
+      // define child as function if it is important that the child is build on every build/create operation 
+      //   -> for example another factory
       child_name: function() {
         return {
           key: value
@@ -38,7 +36,8 @@ factory = new Factory(model, function() {
       child_name: {
         key: value
         $child: {
-          child_name: function() {//example of another factory in a factory -> call this as an regular child no changes needed
+          child_name: function() {
+            //example of another factory in a factory -> call this as a regular child no changes needed
             var $docs;
             test_factory1.build({}, function(err, doc){
               $docs = doc;
@@ -54,9 +53,13 @@ factory = new Factory(model, function() {
 });
 
 module.exports = factory;
+```
 
-//Test file
-// __dirname/test/index.js
+###Test file
+__dirname/test/index.js
+
+```javascript
+
 factory = require("./factories/test_factory.js");
 
 //build and create accept the same parameters
@@ -79,17 +82,18 @@ obj =
         $factory: String,
         //define how many of these object should be created
         $num: Int,
-        // you can modify a values of the factory
+        // you can modify the values of the factory
         key: value
       }
-      // add objects here to create multi num document with different factory or/and value for key of main factory
+      //add objects here to create multi num document with different factory 
+      //or/and value for key of main factory
     ]
   };;
 
 // string methods
 // just include them in the value
 // please visit the strgMethods module to see what you can do
-// https://github.com/doodzik/strgMethods
+// https://github.com/doodzik/strg_methods
 
 ```
 
