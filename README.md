@@ -4,11 +4,11 @@ Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a
 
 # Installation
 
-  $ npm install mangosta
+$ npm install mangosta
 
 # User Guide
 
-find the API under: 
+find the API under: http://doodzik.github.io/mangosta
 
 ###Factory file
 __dirname/test/factory/test_factory.js

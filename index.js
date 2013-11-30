@@ -1,5 +1,5 @@
 var Factory, strgMethods;
-strgMethods = require('strgMethods');
+strgMethods = require('strg_methods');
 
 /**
 @class Factory
