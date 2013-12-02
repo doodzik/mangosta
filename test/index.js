@@ -221,7 +221,7 @@ describe('Factory', function(){
   describe('when _compareObjSync', function(){
     describe('when Obj factory', function(){
       it("returns false",function(){
-        factoryObj._compareObjSync({hola: "fas", type:"avr"}, {}).should.be.false;
+        (factoryObj._compareObjSync({hola: "fas", type:"avr"}, {}) == null).should.be.true;
       });
     });
     describe('when factory', function(){
@@ -235,11 +235,10 @@ describe('Factory', function(){
         });
       });
       describe('when mObj keys different then obj keys', function(){
-        it("returns false",function(){
+        it("returns null",function(){
           var mObj, err;
           mObj = new factory.model({    firstName: "d00d", lastName: "111", addr: "isabela", type: 0});
-          err = factory._compareObjSync(mObj, {firstName: "d00d", lastName: "111", addr: "isabela", type: 0})
-          err.should.be.false;
+          (factory._compareObjSync(mObj, {firstName: "d00d", lastName: "111", addr: "isabela", type: 0}) == null).should.be.true;
         });
       });
     });
