@@ -66,7 +66,9 @@ factory = require("./factories/test_factory.js");
 factory.create(obj, callback)
 factory.build(obj, callback)
 
-callback = function(err, docs) {} // if single document return object else Array Object
+// if single document return object else Array Object
+// create return same param as model.create
+callback = function(err, docs) {}
 
 obj =
   {
@@ -90,12 +92,16 @@ obj =
     ]
   };;
 
+// if you wish you can access the model directly by factory.model
+
 // string methods
 // just include them in the value
 // please visit the strgMethods module to see what you can do
 // https://github.com/doodzik/strg_methods
 
 ```
+
+or to see more examples look at the testfile
 
 # License
 

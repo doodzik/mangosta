@@ -64,19 +64,25 @@ checks if new mongoose.model(object) got a wrong field value
 @private
 @param mObj {Object} mongoose Object
 @param obj {Object} plain Object
-@return {Object} if no error then false else new Error
+@return {Object} if no error then null else new Error
 */
 Factory.prototype._compareObjSync = function (mObj, obj) {
-  if(this.model === this.factory){ return false; }
+  var defaults, arr, mArr;
+  if(this.model === this.factory){ return null; }
   obj._id = "";
-  mObj = Object.keys(mObj.toObject()).sort();
-  obj = Object.keys(obj).sort();
-  for (var i = 0; i < mObj.length; i++) {
-    if (mObj[i] != obj[i]) {
-      return new Error(obj[i]+' isnt the right Schema var type');
+  mArr = Object.keys(mObj.toObject()).sort();
+  arr = Object.keys(obj).sort();
+  //check if default by adding keys from mObj to obj
+  defaults = mArr.filter(function(val) {
+    return arr.indexOf(val) == -1;
+  });
+  arr = arr.concat(defaults).sort();
+  for (var i = 0; i < arr.length; i++) {
+    if (mArr[i] != arr[i]) {
+      return new Error(arr[i]+' isnt the right Schema var type');
     }
   }
-  return false;
+  return null;
 };
 
 /**
@@ -167,7 +173,7 @@ Factory.prototype._getFactory = function (options, callback){
       factory = this._mergeObjsSync(factory, child_factory);
     }
   }
-  return callback(err, factory);
+  return callback(null, factory);
 };
 
 /**
@@ -226,7 +232,9 @@ accepts options as factory.build
 @return {Function} with (err, docs)
 */
 Factory.prototype.create = function (options, callback) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
+  var model;
+  model = this.model;
+  if(model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   if (typeof options == "function"){
     callback = options;
     options = {};
@@ -235,7 +243,7 @@ Factory.prototype.create = function (options, callback) {
   }
   this.build(options, function (err, docs) {
     if (err && typeof callback == "function") { return callback(err, null); }
-    this.model.create(docs, function (err, docs){
+    model.create(docs, function (err, docs){
       if (typeof callback == "function"){
         return callback(err, docs);
       }
