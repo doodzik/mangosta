@@ -58,6 +58,26 @@ Factory.prototype.build = function (options, callback){
 
 /**
 
+returns keys of an nested object
+
+@method _getKeys
+@private
+@param obj {Object} object nested or not
+@return {Array} returns array of obj and nested obj keys
+*/
+Factory.prototype._getKeys = function (obj) {
+  var arr = [];
+  for (var attrname in obj) {
+    arr.push(attrname);
+    if (typeof obj[attrname] === "object" && attrname != "_id"){
+      arr = arr.concat(this._getKeys(obj[attrname]));
+    }
+  }
+  return arr;
+};
+
+/**
+
 checks if new mongoose.model(object) got a wrong field value
 
 @method _compareObjSync
@@ -70,8 +90,9 @@ Factory.prototype._compareObjSync = function (mObj, obj) {
   var defaults, arr, mArr;
   if(this.model === this.factory){ return null; }
   obj._id = "";
-  mArr = Object.keys(mObj.toObject()).sort();
-  arr = Object.keys(obj).sort();
+  mObj._id = "";
+  mArr = this._getKeys(mObj.toObject()).sort();
+  arr = this._getKeys(obj).sort();
   //check if default by adding keys from mObj to obj
   defaults = mArr.filter(function(val) {
     return arr.indexOf(val) == -1;
@@ -99,10 +120,18 @@ Factory.prototype._mergeObjsSync = function (obj1, obj2) {
   var attrname, obj3;
   obj3 = {};
   for (attrname in obj1) {
-    obj3[attrname] = obj1[attrname];
+    if (typeof obj1[attrname] === "object"){
+      obj3[attrname] = this._mergeObjsSync(obj1[attrname], obj2[attrname]);
+    } else {
+      obj3[attrname] = obj1[attrname];
+    }
   }
   for (attrname in obj2) {
-    obj3[attrname] = obj2[attrname];
+    if (typeof obj2[attrname] === "object"){
+      obj3[attrname] = this._mergeObjsSync(obj1[attrname], obj2[attrname]);
+    } else {
+      obj3[attrname] = obj2[attrname];
+    }
   }
   return obj3;
 };
@@ -188,9 +217,9 @@ set new doc
 */
 Factory.prototype._newDoc = function (factory, doc){
   if(this.model === this.factory){
-    return this.stringMethods(this._mergeObjsSync(factory, doc));
+    return this._stringMethods(this._mergeObjsSync(factory, doc));
   } else {
-    return new this.model(this.stringMethods(this._mergeObjsSync(factory, doc)));
+    return new this.model(this._stringMethods(this._mergeObjsSync(factory, doc)));
   }
 };
 
@@ -198,17 +227,21 @@ Factory.prototype._newDoc = function (factory, doc){
 
 applies strMethods.all() to each value of object
 
-@method stringMethods
+@method _stringMethods
 @uses strgMethods
 @private
 @param doc {Object} takes a document
 @return {Object} object with applied strgMethods
 */
-Factory.prototype.stringMethods = function (doc){
+Factory.prototype._stringMethods = function (doc){
   for (var key in doc) {
     if (doc.hasOwnProperty(key)) {
-      Strg = new strgMethods(doc[key], this.sequenc);
-      doc[key] = Strg.all();
+      if (typeof doc[key] === "object"){
+        doc[key] = this._stringMethods(doc[key]);
+      } else {
+        Strg = new strgMethods(doc[key], this.sequenc);
+        doc[key] = Strg.all();
+      }
     }
   }
   return doc;

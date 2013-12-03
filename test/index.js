@@ -108,9 +108,18 @@ describe('Factory', function(){
     });
   });
 
-  describe('when stringMethods', function(){
-    it('returns valid', function(){
-      factory.stringMethods({test:"$len(12)"}).test.length.should.eql(12) 
+  describe('when _stringMethods', function(){
+    describe('when obj isnt nested', function(){
+      it('returns valid', function(){
+        factory._stringMethods({test:"$len(12)"}).test.length.should.eql(12) 
+      });
+    });
+    describe('when obj is nested', function(){
+      it('returns valid', function(){
+        applied = factory._stringMethods({test:"$len(12)", second: {test:"$len(12)"}})
+        applied.test.length.should.eql(12)
+        applied.second.test.length.should.eql(12)
+      });
     });
   });
   
@@ -209,12 +218,35 @@ describe('Factory', function(){
   });
 
   describe("_mergeObjsSync", function(){
-    it("returns merged obj", function(){
-      var newObj;
-      newObj = factory._mergeObjsSync({one:"one", two: "two"}, {one: "three", three: "one"});
-      newObj.one.should.eql("three");
-      newObj.two.should.eql("two");
-      newObj.three.should.eql("one");
+    describe("without nested obj", function(){
+      it("returns merged obj", function(){
+        var newObj;
+        newObj = factory._mergeObjsSync({one:"one", two: "two"}, {one: "three", three: "one"});
+        newObj.one.should.eql("three");
+        newObj.two.should.eql("two");
+        newObj.three.should.eql("one");
+      });
+    });
+
+    describe("with nested obj", function(){
+      it("returns merged obj", function(){
+        var newObj;
+        newObj = factory._mergeObjsSync({one:"one", two: "two", three: {one: "one", two: "two"}, five: {one: "one"}}, {one: "three", four: {one: "one"}, five:{two: "two"}});
+        newObj.should.eql({one:"three", two: "two", three: {one: "one", two: "two"}, four: {one: "one"}, five: {one: "one",two: "two"}});
+      });
+    });
+  });
+
+  describe('when _getKeys', function(){
+    describe('when isnt nested', function(){
+      it("returns false",function(){
+        factory._getKeys({hola: "fas", type:"avr"}).should.eql(["hola", "type"]);
+      });
+    });
+    describe('when is nested', function(){
+      it("returns false",function(){
+        factory._getKeys({hola: "fas", hii: {day: "dzien", good: {bien: "dobry"}}, type:"avr"}).should.eql([ 'hola', 'hii', 'day', 'good', 'bien', 'type' ]);
+      });
     });
   });
 
