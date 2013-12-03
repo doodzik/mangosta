@@ -97,13 +97,13 @@ describe('Factory', function(){
     });
   });
 
-  describe('when done() as callback', function(){
+  describe.skip('when done() as callback', function(){
     before(function(done) {
-      factory.create({$doc:{$num:6}}, done());
+      factory.create({$doc:{$num:6}}, function(){done()});
     });
     it("returns counts",function(){
-      factory.count({}, function(err, num){
-        num.should.eql(6);
+      factory.model.find({}, function(err, docs){
+        docs.length.should.eql(6);
       });
     });
   });
@@ -318,65 +318,6 @@ describe('Factory', function(){
     });
   });
 
-  describe('when find', function(){
-    beforeEach(function(done){
-      factory.model.find({}).remove(function(){
-        factory.create({$docs:[{$num:5},{lastName: "zuk", $num: 3}]}, function(){
-          done();
-        });
-      });
-    });
-    describe('without options', function(){
-      it('returns 8 docs', function(){
-        factory.find(function(err, docs){
-          docs.length.should.eql(8);
-        });
-      });
-    });
-    describe('with options', function(){
-      it('returns 3 docs', function(){
-        factory.find({lastName: "zuk"}, function(err, docs){
-          docs.length.should.eql(3);
-        });
-      });
-    });
-  });
-
-  describe('when findOne', function(){
-    before(function(done){
-      factory.create({$docs:[{},{lastName: "zuk"}]}, function(){
-        done();
-      });
-    });
-    describe('without options', function(){
-      it('returns one doc', function(){
-        factory.findOne(function(err, doc){
-          doc.length.should.eql(1);
-        });
-      });
-    });
-    describe('with options', function(){
-      it('returns specific doc', function(){
-        factory.findOne({lastName: "zuk"}, function(err, doc){
-          doc.lastName.should.eql("zuk");
-        });
-      });
-    });
-  });
-  
-  describe('when count', function(){
-    before(function(done) {
-      factory.create({$doc:{$num:6}}, function(){
-        done();
-      });
-    });
-    it("returns counts",function(){
-      factory.count({}, function(err, num){
-        num.should.eql(6);
-      });
-    });
-  });
-
   describe('when remove', function(){
     beforeEach(function(done){
       factory.model.find({}).remove(function(){
@@ -553,14 +494,14 @@ describe('Factory', function(){
       describe("without callback", function(){
         it("saves default obj to db", function(){
           factory.create({});
-          factory.count({}, function(err, num){
+          factory.model.find({}).count(function(err, num){
             num.should.eql(0);
           });
         });
       });
       describe("without options, callback", function(){
         factory.create();
-        factory.count({}, function(err, num){
+        factory.model.find({}).count(function(err, num){
           num.should.eql(0);
         });
       });

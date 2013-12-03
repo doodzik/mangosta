@@ -286,45 +286,6 @@ Factory.prototype.create = function (options, callback) {
 
 /**
 
-instead of factory.model.find
-see http://mongoosejs.com/docs/api.html#model_Model.find
-
-@method find
-@uses mongoose.model.find
-*/
-Factory.prototype.find =  function (args) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
-  this.model.find.call(arguments);
-};
-
-/**
-
-instead of factory.model.count
-see http://mongoosejs.com/docs/api.html#model_Model.count
-
-@method count
-@uses mongoose.model.count
-*/
-Factory.prototype.count =  function (args) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
-  this.model.count.call(arguments);
-};
-
-/** 
-
-instead of factory.model.findOne
-see http://mongoosejs.com/docs/api.html#model_Model.findOne
-
-@method findOne
-@uses mongoose.model.findOne
-*/
-Factory.prototype.findOne = function (args) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
-  this.model.findOne.call(arguments);
-};
-
-/**
-
 removes docs which matches options from factory.model
 
 @method remove
