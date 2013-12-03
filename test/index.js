@@ -1,4 +1,4 @@
-var factory, Factory, mongoose, schema;
+var factory, Factory, mongoose, schema, model, model1, model2;
 
 mongoose = require('mongoose');
 connection = mongoose.connect('mongodb://localhost/mongoos-factory-test')
@@ -20,6 +20,14 @@ factory1Schema = new mongoose.Schema({
 });
 
 model1 = mongoose.model('factory1', factory1Schema);
+
+fctryStrgSchema = new mongoose.Schema({
+  firstName: String,
+  lastName: String,
+  type: String
+});
+
+model2 = mongoose.model('fctryStrg', fctryStrgSchema);
 
 factory1 = new Factory(mongoose.model("factory1"), function() {
   return {
@@ -88,11 +96,32 @@ factoryObj = new Factory(function() {
   };
 });
 
+factoryStr = new Factory( "fctryStrg" , function() {
+  return {
+    firstName: "factory",
+    lastName: "hi",
+    type: "lolo"
+  };
+});
+
 describe('Factory', function(){
   afterEach(function(done){
     model.remove(function(){
       model1.remove(function(){
-        done();
+        model2.remove(function(){
+          done();
+        });
+      });
+    });
+  });
+  
+  describe('when model passed as String', function(){
+    it("returns counts",function(done){
+      factoryStr.create({$doc:{$num: 6}}, function(err, docs){
+        factoryStr.model.find({}, function(err, docs){
+          docs.length.should.eql(6);
+          done();
+        });
       });
     });
   });

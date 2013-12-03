@@ -1,5 +1,6 @@
-var Factory, strgMethods;
+var Factory, strgMethods, mongoose;
 strgMethods = require('strg_methods');
+mongoose = require("mongoose");
 
 /**
 @class Factory
@@ -22,7 +23,11 @@ strgMethods = require('strg_methods');
 @default 0
 */
 function Factory(model, factory){
-  this.model = model;
+  if (typeof model == "string"){
+    this.model = mongoose.model(model);
+  } else {
+    this.model = model;
+  }
   this.factory = factory || model;
   this.sequenc = 0;
 }
