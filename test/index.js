@@ -126,9 +126,9 @@ describe('Factory', function(){
     });
   });
 
-  describe.skip('when done() as callback', function(){
+  describe('when done() as callback', function(){
     before(function(done) {
-      factory.create({$doc:{$num:6}}, function(){done()});
+      factory.create({$doc:{$num:6}}, done());
     });
     it("returns counts",function(){
       factory.model.find({}, function(err, docs){
