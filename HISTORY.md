@@ -1,5 +1,10 @@
 if the second number of version is even or 0 then it is a stable else a unstable release
 
+# v1.1.0 (4.12.2013)
++ user can parse the name of the model into new factory() or as it is
++ add support for nested schema
+- remove mongoose methodes except remove
+
 # v1.0.1 (2.12.2013)
 + fix __compareObjSync/build with default values in schema which arent defined in factory
 + err object should return null instead of false

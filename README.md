@@ -2,9 +2,13 @@
 
 Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a simple but powerful interface.
 
+PLEASE REPORT ANY BUGS OR ENHANCEMENTS
+
 # Installation
 
 $ npm install mangosta
+
+if you want the unstable 1.1.0 release, which supports nested schemas, clone this repository.
 
 # User Guide
 
@@ -19,6 +23,9 @@ var factory, test_factory1, Factory, mongoose;
 mongoose = require('mongoose');
 Factory = require('mangosta');
 model = mongoose.model("factory");//get model, which was previously created
+// or in v1.1.0 you can also use
+model = "factory";
+
 test_factory1 = require(__dirname/test/factory/test_factory.js);
 
 factory = new Factory(model, function() {
