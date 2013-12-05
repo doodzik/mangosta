@@ -401,6 +401,34 @@ describe('Factory', function(){
   });
 
   describe('when build', function(){
+    describe.only("factory.last", function(){
+      describe("when single", function(){
+        it("returns last build doc", function(done){
+          factory.build({$doc:{lastName: "last"}}, function(err, docs){
+            done()
+          });
+        });
+        describe("with before hook", function(){
+          before(function(done){
+            factory.build({$doc:{lastName: "done"}}, function(err, docs){
+              factory.last.should.eql(docs)
+              done()
+            });
+          });
+          it("sets factory.last", function(){
+            factory.last.lastName.should.eql("done");
+          });
+        });
+      });
+      describe("when multiple", function(){
+        it("returns last build docs", function(done){
+          factory.build({$doc:{lastName: "last", $num: 3}}, function(err, docs){
+            factory.last.should.eql(docs)
+            done()
+          });
+        });        
+      });
+    });
     describe("with invalid", function(){
       it("var type return err", function(){
         factory.build({$doc:{type: "f234fq3"}}, function(err){

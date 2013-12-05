@@ -20,6 +20,8 @@ strgMethods = require('strg_methods');
 @property sequence
 @type Number
 @default 0
+@property last
+@type Array|Object
 */
 function Factory(model, factory){
   this.model = model;
@@ -52,6 +54,7 @@ Factory.prototype.build = function (options, callback){
   this._getNewDocs(options, function (err, docs) {
     if (err) { return callback(err, null); }
     docs = (docs.length === 1 ) ? docs[0] : docs;
+    Factory.prototype.last = docs;
     return callback(err, docs);
   });
 };
