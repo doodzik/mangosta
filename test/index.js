@@ -1,4 +1,4 @@
-var factory, Factory, mongoose, schema;
+var factory, Factory, mongoose, schema, model, model1, model2;
 
 mongoose = require('mongoose');
 connection = mongoose.connect('mongodb://localhost/mongoos-factory-test')
@@ -20,6 +20,14 @@ factory1Schema = new mongoose.Schema({
 });
 
 model1 = mongoose.model('factory1', factory1Schema);
+
+fctryStrgSchema = new mongoose.Schema({
+  firstName: String,
+  lastName: String,
+  type: String
+});
+
+model2 = mongoose.model('fctryStrg', fctryStrgSchema);
 
 factory1 = new Factory(mongoose.model("factory1"), function() {
   return {
@@ -88,11 +96,32 @@ factoryObj = new Factory(function() {
   };
 });
 
+factoryStr = new Factory( "fctryStrg" , function() {
+  return {
+    firstName: "factory",
+    lastName: "hi",
+    type: "lolo"
+  };
+});
+
 describe('Factory', function(){
   afterEach(function(done){
     model.remove(function(){
       model1.remove(function(){
-        done();
+        model2.remove(function(){
+          done();
+        });
+      });
+    });
+  });
+  
+  describe('when model passed as String', function(){
+    it("returns counts",function(done){
+      factoryStr.create({$doc:{$num: 6}}, function(err, docs){
+        factoryStr.model.find({}, function(err, docs){
+          docs.length.should.eql(6);
+          done();
+        });
       });
     });
   });
@@ -102,15 +131,24 @@ describe('Factory', function(){
       factory.create({$doc:{$num:6}}, done());
     });
     it("returns counts",function(){
-      factory.count({}, function(err, num){
-        num.should.eql(6);
+      factory.model.find({}, function(err, docs){
+        docs.length.should.eql(6);
       });
     });
   });
 
-  describe('when stringMethods', function(){
-    it('returns valid', function(){
-      factory.stringMethods({test:"$len(12)"}).test.length.should.eql(12) 
+  describe('when _stringMethods', function(){
+    describe('when obj isnt nested', function(){
+      it('returns valid', function(){
+        factory._stringMethods({test:"$len(12)"}).test.length.should.eql(12) 
+      });
+    });
+    describe('when obj is nested', function(){
+      it('returns valid', function(){
+        applied = factory._stringMethods({test:"$len(12)", second: {test:"$len(12)"}})
+        applied.test.length.should.eql(12)
+        applied.second.test.length.should.eql(12)
+      });
     });
   });
   
@@ -209,19 +247,42 @@ describe('Factory', function(){
   });
 
   describe("_mergeObjsSync", function(){
-    it("returns merged obj", function(){
-      var newObj;
-      newObj = factory._mergeObjsSync({one:"one", two: "two"}, {one: "three", three: "one"});
-      newObj.one.should.eql("three");
-      newObj.two.should.eql("two");
-      newObj.three.should.eql("one");
+    describe("without nested obj", function(){
+      it("returns merged obj", function(){
+        var newObj;
+        newObj = factory._mergeObjsSync({one:"one", two: "two"}, {one: "three", three: "one"});
+        newObj.one.should.eql("three");
+        newObj.two.should.eql("two");
+        newObj.three.should.eql("one");
+      });
+    });
+
+    describe("with nested obj", function(){
+      it("returns merged obj", function(){
+        var newObj;
+        newObj = factory._mergeObjsSync({one:"one", two: "two", three: {one: "one", two: "two"}, five: {one: "one"}}, {one: "three", four: {one: "one"}, five:{two: "two"}});
+        newObj.should.eql({one:"three", two: "two", three: {one: "one", two: "two"}, four: {one: "one"}, five: {one: "one",two: "two"}});
+      });
+    });
+  });
+
+  describe('when _getKeys', function(){
+    describe('when isnt nested', function(){
+      it("returns false",function(){
+        factory._getKeys({hola: "fas", type:"avr"}).should.eql(["hola", "type"]);
+      });
+    });
+    describe('when is nested', function(){
+      it("returns false",function(){
+        factory._getKeys({hola: "fas", hii: {day: "dzien", good: {bien: "dobry"}}, type:"avr"}).should.eql([ 'hola', 'hii', 'day', 'good', 'bien', 'type' ]);
+      });
     });
   });
 
   describe('when _compareObjSync', function(){
     describe('when Obj factory', function(){
       it("returns false",function(){
-        factoryObj._compareObjSync({hola: "fas", type:"avr"}, {}).should.be.false;
+        (factoryObj._compareObjSync({hola: "fas", type:"avr"}, {}) == null).should.be.true;
       });
     });
     describe('when factory', function(){
@@ -235,11 +296,10 @@ describe('Factory', function(){
         });
       });
       describe('when mObj keys different then obj keys', function(){
-        it("returns false",function(){
+        it("returns null",function(){
           var mObj, err;
           mObj = new factory.model({    firstName: "d00d", lastName: "111", addr: "isabela", type: 0});
-          err = factory._compareObjSync(mObj, {firstName: "d00d", lastName: "111", addr: "isabela", type: 0})
-          err.should.be.false;
+          (factory._compareObjSync(mObj, {firstName: "d00d", lastName: "111", addr: "isabela", type: 0}) == null).should.be.true;
         });
       });
     });
@@ -283,65 +343,6 @@ describe('Factory', function(){
           docs[0].firstName.should.eql('not');
           docs[0].lastName.should.eql('empty');
         });
-      });
-    });
-  });
-
-  describe('when find', function(){
-    beforeEach(function(done){
-      factory.model.find({}).remove(function(){
-        factory.create({$docs:[{$num:5},{lastName: "zuk", $num: 3}]}, function(){
-          done();
-        });
-      });
-    });
-    describe('without options', function(){
-      it('returns 8 docs', function(){
-        factory.find(function(err, docs){
-          docs.length.should.eql(8);
-        });
-      });
-    });
-    describe('with options', function(){
-      it('returns 3 docs', function(){
-        factory.find({lastName: "zuk"}, function(err, docs){
-          docs.length.should.eql(3);
-        });
-      });
-    });
-  });
-
-  describe('when findOne', function(){
-    before(function(done){
-      factory.create({$docs:[{},{lastName: "zuk"}]}, function(){
-        done();
-      });
-    });
-    describe('without options', function(){
-      it('returns one doc', function(){
-        factory.findOne(function(err, doc){
-          doc.length.should.eql(1);
-        });
-      });
-    });
-    describe('with options', function(){
-      it('returns specific doc', function(){
-        factory.findOne({lastName: "zuk"}, function(err, doc){
-          doc.lastName.should.eql("zuk");
-        });
-      });
-    });
-  });
-  
-  describe('when count', function(){
-    before(function(done) {
-      factory.create({$doc:{$num:6}}, function(){
-        done();
-      });
-    });
-    it("returns counts",function(){
-      factory.count({}, function(err, num){
-        num.should.eql(6);
       });
     });
   });
@@ -550,14 +551,14 @@ describe('Factory', function(){
       describe("without callback", function(){
         it("saves default obj to db", function(){
           factory.create({});
-          factory.count({}, function(err, num){
+          factory.model.find({}).count(function(err, num){
             num.should.eql(0);
           });
         });
       });
       describe("without options, callback", function(){
         factory.create();
-        factory.count({}, function(err, num){
+        factory.model.find({}).count(function(err, num){
           num.should.eql(0);
         });
       });

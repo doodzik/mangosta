@@ -1,5 +1,6 @@
-var Factory, strgMethods;
+var Factory, strgMethods, mongoose;
 strgMethods = require('strg_methods');
+mongoose = require("mongoose");
 
 /**
 @class Factory
@@ -24,7 +25,11 @@ strgMethods = require('strg_methods');
 @type Array|Object
 */
 function Factory(model, factory){
-  this.model = model;
+  if (typeof model == "string"){
+    this.model = mongoose.model(model);
+  } else {
+    this.model = model;
+  }
   this.factory = factory || model;
   this.sequenc = 0;
 }
@@ -61,25 +66,52 @@ Factory.prototype.build = function (options, callback){
 
 /**
 
+returns keys of an nested object
+
+@method _getKeys
+@private
+@param obj {Object} object nested or not
+@return {Array} returns array of obj and nested obj keys
+*/
+Factory.prototype._getKeys = function (obj) {
+  var arr = [];
+  for (var attrname in obj) {
+    arr.push(attrname);
+    if (typeof obj[attrname] === "object" && attrname != "_id"){
+      arr = arr.concat(this._getKeys(obj[attrname]));
+    }
+  }
+  return arr;
+};
+
+/**
+
 checks if new mongoose.model(object) got a wrong field value
 
 @method _compareObjSync
 @private
 @param mObj {Object} mongoose Object
 @param obj {Object} plain Object
-@return {Object} if no error then false else new Error
+@return {Object} if no error then null else new Error
 */
 Factory.prototype._compareObjSync = function (mObj, obj) {
-  if(this.model === this.factory){ return false; }
+  var defaults, arr, mArr;
+  if(this.model === this.factory){ return null; }
   obj._id = "";
-  mObj = Object.keys(mObj.toObject()).sort();
-  obj = Object.keys(obj).sort();
-  for (var i = 0; i < mObj.length; i++) {
-    if (mObj[i] != obj[i]) {
-      return new Error(obj[i]+' isnt the right Schema var type');
+  mObj._id = "";
+  mArr = this._getKeys(mObj.toObject()).sort();
+  arr = this._getKeys(obj).sort();
+  //check if default by adding keys from mObj to obj
+  defaults = mArr.filter(function(val) {
+    return arr.indexOf(val) == -1;
+  });
+  arr = arr.concat(defaults).sort();
+  for (var i = 0; i < arr.length; i++) {
+    if (mArr[i] != arr[i]) {
+      return new Error(arr[i]+' isnt the right Schema var type');
     }
   }
-  return false;
+  return null;
 };
 
 /**
@@ -96,10 +128,18 @@ Factory.prototype._mergeObjsSync = function (obj1, obj2) {
   var attrname, obj3;
   obj3 = {};
   for (attrname in obj1) {
-    obj3[attrname] = obj1[attrname];
+    if (typeof obj1[attrname] === "object"){
+      obj3[attrname] = this._mergeObjsSync(obj1[attrname], obj2[attrname]);
+    } else {
+      obj3[attrname] = obj1[attrname];
+    }
   }
   for (attrname in obj2) {
-    obj3[attrname] = obj2[attrname];
+    if (typeof obj2[attrname] === "object"){
+      obj3[attrname] = this._mergeObjsSync(obj1[attrname], obj2[attrname]);
+    } else {
+      obj3[attrname] = obj2[attrname];
+    }
   }
   return obj3;
 };
@@ -170,7 +210,7 @@ Factory.prototype._getFactory = function (options, callback){
       factory = this._mergeObjsSync(factory, child_factory);
     }
   }
-  return callback(err, factory);
+  return callback(null, factory);
 };
 
 /**
@@ -185,9 +225,9 @@ set new doc
 */
 Factory.prototype._newDoc = function (factory, doc){
   if(this.model === this.factory){
-    return this.stringMethods(this._mergeObjsSync(factory, doc));
+    return this._stringMethods(this._mergeObjsSync(factory, doc));
   } else {
-    return new this.model(this.stringMethods(this._mergeObjsSync(factory, doc)));
+    return new this.model(this._stringMethods(this._mergeObjsSync(factory, doc)));
   }
 };
 
@@ -195,17 +235,21 @@ Factory.prototype._newDoc = function (factory, doc){
 
 applies strMethods.all() to each value of object
 
-@method stringMethods
+@method _stringMethods
 @uses strgMethods
 @private
 @param doc {Object} takes a document
 @return {Object} object with applied strgMethods
 */
-Factory.prototype.stringMethods = function (doc){
+Factory.prototype._stringMethods = function (doc){
   for (var key in doc) {
     if (doc.hasOwnProperty(key)) {
-      Strg = new strgMethods(doc[key], this.sequenc);
-      doc[key] = Strg.all();
+      if (typeof doc[key] === "object"){
+        doc[key] = this._stringMethods(doc[key]);
+      } else {
+        Strg = new strgMethods(doc[key], this.sequenc);
+        doc[key] = Strg.all();
+      }
     }
   }
   return doc;
@@ -229,7 +273,9 @@ accepts options as factory.build
 @return {Function} with (err, docs)
 */
 Factory.prototype.create = function (options, callback) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
+  var model;
+  model = this.model;
+  if(model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
   if (typeof options == "function"){
     callback = options;
     options = {};
@@ -238,51 +284,12 @@ Factory.prototype.create = function (options, callback) {
   }
   this.build(options, function (err, docs) {
     if (err && typeof callback == "function") { return callback(err, null); }
-    this.model.create(docs, function (err, docs){
+    model.create(docs, function (err, docs){
       if (typeof callback == "function"){
         return callback(err, docs);
       }
     });
   });
-};
-
-/**
-
-instead of factory.model.find
-see http://mongoosejs.com/docs/api.html#model_Model.find
-
-@method find
-@uses mongoose.model.find
-*/
-Factory.prototype.find =  function (args) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
-  this.model.find.call(arguments);
-};
-
-/**
-
-instead of factory.model.count
-see http://mongoosejs.com/docs/api.html#model_Model.count
-
-@method count
-@uses mongoose.model.count
-*/
-Factory.prototype.count =  function (args) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
-  this.model.count.call(arguments);
-};
-
-/** 
-
-instead of factory.model.findOne
-see http://mongoosejs.com/docs/api.html#model_Model.findOne
-
-@method findOne
-@uses mongoose.model.findOne
-*/
-Factory.prototype.findOne = function (args) {
-  if(this.model === this.factory){ throw new Error("you cant use a mongoose method on a plain factory object"); }
-  this.model.findOne.call(arguments);
 };
 
 /**
