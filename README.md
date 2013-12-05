@@ -14,6 +14,8 @@ if you want the unstable 1.1.0 release, which supports nested schemas, clone thi
 
 find the API under: http://doodzik.github.io/mangosta
 
+tested with mongoose >= 3.8.1
+
 ###Factory file
 __dirname/test/factory/test_factory.js
 

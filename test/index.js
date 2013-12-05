@@ -402,7 +402,7 @@ describe('Factory', function(){
   });
 
   describe('when build', function(){
-    describe.only("factory.last", function(){
+    describe("factory.last", function(){
       describe("when single", function(){
         it("returns last build doc", function(done){
           factory.build({$doc:{lastName: "last"}}, function(err, docs){
