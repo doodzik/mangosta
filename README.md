@@ -1,3 +1,9 @@
+[quote]
+#ATTENTION
+THIS MODULE ISN'T MAINTAINTED ANYMORE.
+USE STUBS/MOCKS IN YOUR SPECS/TESTS INSTEAD OF ACCESSING THE DATABASE.
+[/quote]
+
 # Overview
 
 Mangosta (esp. for mongoose) is a factory library for mongoose, which provides a simple but powerful interface.
